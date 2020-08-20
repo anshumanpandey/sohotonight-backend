@@ -3,7 +3,7 @@ import sequelize from "../utils/DB";
 import { DataTypes, Model,Optional } from "sequelize";
 
 export enum USER_ROLE_ENUM {
-  ADMIN = "Admin",
+  SUPER_ADMIN = "Super_admin",
   ESCORT = "Escort",
   CAM = "Cam",
   MASSAGE = "Massage"

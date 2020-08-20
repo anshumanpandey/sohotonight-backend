@@ -9,7 +9,7 @@ export const SeedSuperadmin = () => {
         password: hashSync("5ct0cz", 8),
         mobileNumber: "0",
         age: "18",
-        role: USER_ROLE_ENUM.ADMIN,
+        role: USER_ROLE_ENUM.SUPER_ADMIN,
     }
     return UserModel.findOrCreate({
         where: { email: 'super_admin@mail.com'},

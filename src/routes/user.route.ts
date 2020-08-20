@@ -58,6 +58,7 @@ userRoutes.post('/login', validateParams(checkSchema({
   });
 
   if (!user) throw new ApiError("User not found")
+  if (user.role != USER_ROLE_ENUM.SUPER_ADMIN) throw new ApiError("You are not admin")
   if (!await compare(password, user.password)) throw new ApiError("Email or password incorrect")
 
   const jsonData = user.toJSON();
@@ -151,13 +152,23 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (await UserModel.findOne({ where: { email }})) throw new ApiError("Email already registered")
 
   const hashedPass = await hash(password, 8)
-  await UserModel.create({ password: hashedPass, email, ...fields})
-  res.send({ success: 'User created' });
+  const user = await UserModel.create({ password: hashedPass, email, ...fields})
+
+  const jsonData = user.toJSON();
+  //@ts-ignore
+  delete jsonData.password;
+  var token = sign(jsonData, process.env.JWT_SECRET || 'aa', { expiresIn: '9999 years'});
+  res.send({ ...jsonData, token });
 }));
 
 userRoutes.get('/getUser', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   res.send(await UserModel.findByPk(req.user.id, { attributes: { exclude: ["password"]}}));
+}));
+
+userRoutes.get('/getUsers', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+  //@ts-expect-error
+  res.send(await UserModel.findAll({ where: { role: { [Op.not]: USER_ROLE_ENUM.SUPER_ADMIN }}}, { attributes: { exclude: ["password"]}}));
 }));
 
 

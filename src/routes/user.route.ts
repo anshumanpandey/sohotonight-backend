@@ -11,7 +11,7 @@ import { hash, compare } from "bcrypt"
 import { UserModel, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
-import { sendForgotPassword } from '../utils/Mail';
+import { sendForgotPassword, sendEmail } from '../utils/Mail';
 import multer from 'multer';
 
 let storage = multer.diskStorage({
@@ -158,6 +158,7 @@ userRoutes.post('/register', upload.single("profilePic"), validateParams(checkSc
   const jsonData = user.toJSON();
   //@ts-ignore
   delete jsonData.password;
+  await sendEmail({email: "", user: jsonData})
   var token = sign(jsonData, process.env.JWT_SECRET || 'aa', { expiresIn: '9999 years'});
   res.send({ ...jsonData, token });
 }));

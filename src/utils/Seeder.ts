@@ -10,6 +10,7 @@ export const SeedSuperadmin = () => {
         mobileNumber: "0",
         age: "18",
         role: USER_ROLE_ENUM.SUPER_ADMIN,
+        profilePic: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
     }
     return UserModel.findOrCreate({
         where: { email: 'super_admin@mail.com'},

@@ -18,6 +18,7 @@ interface UserAttributes {
   role: USER_ROLE_ENUM,
   password: string,
   location: string,
+  profilePic: string
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
@@ -59,5 +60,9 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     },
     role: {
       type: DataTypes.ENUM(...RoleKeys)
+    },
+    profilePic: {
+      type: DataTypes.STRING,
+      allowNull: false,
     }
 })

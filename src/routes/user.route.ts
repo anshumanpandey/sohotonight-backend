@@ -68,7 +68,7 @@ userRoutes.post('/login', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.post('/register', validateParams(checkSchema({
+userRoutes.post('/register', upload.single("profilePic"), validateParams(checkSchema({
   name: {
     in: ['body'],
     exists: {
@@ -147,12 +147,13 @@ userRoutes.post('/register', validateParams(checkSchema({
     trim: true
   },  
 })), asyncHandler(async (req, res) => {
+  if (!req.file) throw new ApiError("Missing profile pic")
   const { password, email,...fields} = req.body;
 
   if (await UserModel.findOne({ where: { email }})) throw new ApiError("Email already registered")
 
   const hashedPass = await hash(password, 8)
-  const user = await UserModel.create({ password: hashedPass, email, ...fields})
+  const user = await UserModel.create({ password: hashedPass, email, profilePic: `${req.protocol + '://' + req.get('host')}/profilePic/${req.file.filename}`, ...fields})
 
   const jsonData = user.toJSON();
   //@ts-ignore
@@ -176,6 +177,6 @@ userRoutes.post('/uploadProfilePic', jwt({ secret: process.env.JWT_SECRET || 'aa
   console.log(req.file)
   await UserModel
   //@ts-expect-error
-  .update({ profilePic: `${req.protocol + '://' + req.get('host')}/profilePic/${req.file.filename}` }, { where: { id: req.user.id }})
+  .update({  }, { where: { id: req.user.id }})
   res.send({ success: 'Achivement created' });
 }));

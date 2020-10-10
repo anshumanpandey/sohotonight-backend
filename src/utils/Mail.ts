@@ -32,33 +32,3 @@ export async function sendEmail({ email, user }:{ email: string, user:any}) {
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
 }
-
-export async function sendForgotPassword({ email, password }:{ email: string, password: string, user: any}) {
-
-    // create reusable transporter object using the default SMTP transport
-    let transporter = createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'thelox95@gmail.com',
-            pass: 'qhvzmcllegwhguje' // naturally, replace both with your real credentials or an application-specific password
-        }
-    });
-
-    // send mail with defined transport object
-    let info = await transporter.sendMail({
-        from: 'thelox95@gmail.com', // sender address
-        to: email, // list of receivers
-        subject: "Your new password for Passport app", // Subject line
-        html: render(
-            readFileSync(join(__dirname, '..', '..', 'templates', 'forgot_password.html'), 
-            { encoding: 'utf8' }), {
-                assets_url: process.env.ASSETS_URL,
-                password,
-            }
-        ),
-    });
-
-    console.log("Message sent: %s", info.messageId);
-    // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-
-}

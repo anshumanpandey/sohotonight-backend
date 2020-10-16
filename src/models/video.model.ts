@@ -24,7 +24,7 @@ export const VideoModel = sequelize.define<UserInstance>("Video", {
     allowNull: false
   },
   price: {
-    type: DataTypes.NUMBER,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
 })

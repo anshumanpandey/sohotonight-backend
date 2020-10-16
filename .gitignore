@@ -13,3 +13,5 @@ banners/*
 !banners/.gitkeep
 authImages/*
 !authImages/.gitkeep
+pictures/*
+!pictures/.gitkeep

@@ -36,6 +36,7 @@ interface UserAttributes {
   phoneChat: boolean,
   webcamWork: boolean,
   contentProducer: boolean,
+  allowSocialMediaMarketing: boolean,  
 
   recievePromotions: boolean,
   hasAdultContentCertification: boolean,
@@ -145,6 +146,10 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     defaultValue: null
   },
   escortServices: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  allowSocialMediaMarketing: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },

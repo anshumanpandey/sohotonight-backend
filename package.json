@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "ts-node ."
+    "start": "ts-node ./src"
   },
   "keywords": [],
   "author": "",

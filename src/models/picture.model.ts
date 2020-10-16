@@ -24,7 +24,7 @@ export const PictureModel = sequelize.define<UserInstance>("Picture", {
     allowNull: false
   },
   price: {
-    type: DataTypes.NUMBER,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
 })

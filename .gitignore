@@ -7,3 +7,9 @@ uploads/*
 profilePic/*
 !profilePic/.gitkeep
 .vscode/
+videos/*
+!videos/.gitkeep
+banners/*
+!banners/.gitkeep
+authImages/*
+!authImages/.gitkeep

@@ -157,26 +157,20 @@ userRoutes.post('/register', validateParams(checkSchema({
     },
     trim: true
   },
-  country: {
-    in: ['body'],
-    exists: {
-      errorMessage: 'Missing field'
-    },
-    isEmpty: {
-      errorMessage: 'Missing field',
-      negated: true
-    },
-    trim: true
-  },
 })), asyncHandler(async (req, res) => {
-  const { password, confirmPassword, emailAddress, ...fields } = req.body;
+  const { password, confirmPassword, emailAddress, nickname, ...fields } = req.body;
 
   if (password != confirmPassword) throw new ApiError("Password not match")
 
-  if (await UserModel.findOne({ where: { emailAddress } })) throw new ApiError("Email already registered")
+  const [ byEmail, byNickname] = await Promise.all([
+    await UserModel.findOne({ where: { emailAddress } }),
+    await UserModel.findOne({ where: { nickname } }),
+  ])
+  if (byEmail) throw new ApiError("Email already registered")
+  if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
-  const user = await UserModel.create({ password: hashedPass, emailAddress, ...fields })
+  const user = await UserModel.create({ password: hashedPass, nickname,emailAddress, ...fields })
 
   const jsonData = user.toJSON();
   //@ts-ignore

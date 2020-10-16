@@ -30,6 +30,7 @@ interface UserAttributes {
   monthOfBirth: string,
   yearOfBirth: string,
   country: string,
+  county: string,
 
   escortServices: boolean,
   phoneChat: boolean,
@@ -136,7 +137,12 @@ export const UserModel = sequelize.define<UserInstance>("User", {
   },
   country: {
     type: DataTypes.STRING,
-    allowNull: false
+    defaultValue: "United Kingdom",
+  },
+  county: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null
   },
   escortServices: {
     type: DataTypes.BOOLEAN,

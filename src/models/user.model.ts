@@ -32,6 +32,9 @@ interface UserAttributes {
   country: string,
   county: string,
 
+  inches: boolean,
+  feet: boolean,
+
   escortServices: boolean,
   phoneChat: boolean,
   webcamWork: boolean,
@@ -105,7 +108,7 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     defaultValue: null
   },
   aboutYouDetail: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(1000),
     allowNull: true,
     defaultValue: null
   },
@@ -139,6 +142,14 @@ export const UserModel = sequelize.define<UserInstance>("User", {
   country: {
     type: DataTypes.STRING,
     defaultValue: "United Kingdom",
+  },
+  inches: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  feet: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
   county: {
     type: DataTypes.STRING,

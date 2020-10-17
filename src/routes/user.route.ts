@@ -15,6 +15,7 @@ import multer from 'multer';
 import { PictureModel } from '../models/picture.model';
 import { VideoModel } from '../models/video.model';
 import GenerateUploadMiddleware from '../utils/GenerateUploadMiddleware';
+import { PostModel } from '../models/post.model';
 
 const upload = GenerateUploadMiddleware({ folderName: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ folderName: "videos" })
@@ -218,7 +219,7 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
 
 
 userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
-  res.send(await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: VideoModel }] }));
+  res.send(await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: VideoModel }, { model: PostModel }] }));
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {

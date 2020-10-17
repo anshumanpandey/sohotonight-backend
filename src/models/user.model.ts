@@ -3,6 +3,7 @@ import sequelize from "../utils/DB";
 import { DataTypes, Model, Optional } from "sequelize";
 import { PictureModel } from "./picture.model";
 import { VideoModel } from "./video.model";
+import { PostModel } from "./post.model";
 
 export enum USER_ROLE_ENUM {
   SUPER_ADMIN = "Super_admin",
@@ -108,7 +109,7 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     defaultValue: null
   },
   aboutYouDetail: {
-    type: DataTypes.STRING(1000),
+    type: DataTypes.STRING(2000),
     allowNull: true,
     defaultValue: null
   },
@@ -210,3 +211,6 @@ PictureModel.belongsTo(UserModel);
 
 UserModel.hasMany(VideoModel);
 VideoModel.belongsTo(UserModel);
+
+UserModel.hasMany(PostModel);
+PostModel.belongsTo(UserModel);

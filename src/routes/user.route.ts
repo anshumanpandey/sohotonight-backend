@@ -252,7 +252,7 @@ userRoutes.delete('/deleteImage', validateParams(checkSchema({
   },
 })), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
-  const picture = await PictureModel.findOne({ id: req.body.imageId, "$User.Id$": req.user.id })
+  const picture = await PictureModel.findOne({ where: { id: req.body.imageId, "UserId": req.user.id } })
   if (!picture) throw new ApiError("Picture not found")
   await picture.destroy()
   res.send({ success: true });
@@ -271,7 +271,7 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
   },
 })), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
-  const picture = await VideoModel.findOne({ id: req.body.videoId, "$User.Id$": req.user.id })
+  const picture = await VideoModel.findOne({ where: { id: req.body.videoId, "UserId": req.user.id }})
   if (!picture) throw new ApiError("Picture not found")
   await picture.destroy()
   res.send({ success: true });

@@ -7,7 +7,7 @@ import { PaymentModel } from '../models/payment.model';
 
 export const paymentRoutes = express();
 
-paymentRoutes.post('/create', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), validateParams(checkSchema({
+paymentRoutes.post('/create', validateParams(checkSchema({
   name: {
     in: ['body'],
     exists: {

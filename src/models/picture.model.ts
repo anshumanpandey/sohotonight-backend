@@ -24,7 +24,7 @@ export const PictureModel = sequelize.define<UserInstance>("Picture", {
     allowNull: false
   },
   price: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.FLOAT({ length: 10, decimals: 2 }),
     allowNull: false
   },
 })

@@ -8,7 +8,62 @@ import { PaymentModel } from '../models/payment.model';
 export const paymentRoutes = express();
 
 paymentRoutes.post('/create', validateParams(checkSchema({
-  name: {
+  firstName: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  lastName: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  addressOne: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  addressTwo: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  city: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  country: {
     in: ['body'],
     exists: {
       errorMessage: 'Missing field'
@@ -20,17 +75,6 @@ paymentRoutes.post('/create', validateParams(checkSchema({
     trim: true
   },
   email: {
-    in: ['body'],
-    exists: {
-      errorMessage: 'Missing field'
-    },
-    isEmpty: {
-      errorMessage: 'Missing field',
-      negated: true
-    },
-    trim: true
-  },
-  address: {
     in: ['body'],
     exists: {
       errorMessage: 'Missing field'

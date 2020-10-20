@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 
 v2.config({
-    cloud_name: "dkmtb3ims",
-    api_key: "318912411911978",
-    api_secret: "wCj12G5TwZ9vYHsAbTbWGSICiOU"
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export type UploadMiddlewareParams = { type?: "image" | "video", folderPath?: "videos" | "pictures", resolveDestination?: (req: express.Request, file: Express.Multer.File) => void }

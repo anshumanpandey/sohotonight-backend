@@ -3,38 +3,35 @@ var jwt = require('express-jwt');
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 import asyncHandler from "express-async-handler"
-import { Op } from "sequelize"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
 import { UserModel, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
-import { sendEmail } from '../utils/Mail';
 import multer from 'multer';
 import { PictureModel } from '../models/picture.model';
 import { VideoModel } from '../models/video.model';
 import GenerateUploadMiddleware from '../utils/GenerateUploadMiddleware';
 import { PostModel } from '../models/post.model';
+import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 
-const upload = GenerateUploadMiddleware({ folderName: "pictures" })
-const uploadVideo = GenerateUploadMiddleware({ folderName: "videos" })
+const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
+const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
 
 const fieldSize = 500 * 1024 * 1024
-let storage = multer.diskStorage({
-  destination: (req, file, cb) => { // setting destination of uploading files        
+
+const storage = GetMulterCloudnaryStorage({
+  resolveDestination: (req, file) => {  
     if (file.fieldname === "profilePic") {
-      cb(null, 'profilePic/');
+      return "profilePic"
     } else if (file.fieldname === "bannerImage") {
-      cb(null, 'banners/');
+      return "banners"
     } else if (file.fieldname === "authenticatePic") {
-      cb(null, 'authImages/');
+      return "authImages"
     }
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${uuidv4()}-${Date.now()}${extname(file.originalname)}`)
   }
-});
+})
 
 const profileFiles = multer({ storage, limits: { fieldSize } })
 
@@ -192,17 +189,17 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   //@ts-expect-error
   if (req.files?.profilePic) {
     //@ts-expect-error
-    fieldsToUpdate.profilePic = `${req.protocol + '://' + req.get('host')}/profilePic/${req.files.profilePic[0].filename}`
+    fieldsToUpdate.profilePic = req.files.profilePic[0].path
   }
   //@ts-expect-error
   if (req.files?.bannerImage) {
     //@ts-expect-error
-    fieldsToUpdate.bannerImage = `${req.protocol + '://' + req.get('host')}/banners/${req.files.bannerImage[0].filename}`
+    fieldsToUpdate.bannerImage = req.files.bannerImage[0].path
   }
   //@ts-expect-error
   if (req.files?.authenticatePic) {
     //@ts-expect-error
-    fieldsToUpdate.authenticationProfilePic = `${req.protocol + '://' + req.get('host')}/authImages/${req.files.authenticatePic[0].filename}`
+    fieldsToUpdate.authenticationProfilePic = req.files.authenticatePic[0].path
   }
   //@ts-expect-error
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
@@ -281,7 +278,7 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
 userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await PictureModel.create({ price: req.body.price, imageName: `${req.protocol + '://' + req.get('host')}/pictures/${req.file.filename}` })
+  const picture = await PictureModel.create({ price: req.body.price, imageName: req.file.path })
   //@ts-expect-error
   await user.addPicture(picture)
   res.send({ success: 'Image added' });
@@ -290,7 +287,7 @@ userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.e
 userRoutes.post('/addVideo', uploadVideo.single("video"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await VideoModel.create({ price: req.body.price, videoUrl: `${req.protocol + '://' + req.get('host')}/videos/${req.file.filename}` })
+  const picture = await VideoModel.create({ price: req.body.price, videoUrl: req.file.path })
   //@ts-expect-error
   await user.addVideo(picture)
   res.send({ success: 'Video added' });

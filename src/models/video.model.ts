@@ -26,7 +26,8 @@ export const VideoModel = sequelize.define<UserInstance>("Video", {
   },
   price: {
     type: DataTypes.FLOAT({ length: 10, decimals: 2 }),
-    allowNull: true
+    allowNull: true,
+    defaultValue: false
   },
   isFree: {
     type: DataTypes.BOOLEAN,

@@ -278,7 +278,7 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
 userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await PictureModel.create({ price: req.body.price, imageName: req.file.path })
+  const picture = await PictureModel.create({ price: req.body.price, imageName: req.file.path, isFree: req.body.isFree == "1" })
   //@ts-expect-error
   await user.addPicture(picture)
   res.send({ success: 'Image added' });
@@ -287,7 +287,7 @@ userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.e
 userRoutes.post('/addVideo', uploadVideo.single("video"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await VideoModel.create({ price: req.body.price, videoUrl: req.file.path })
+  const picture = await VideoModel.create({ price: req.body.price, videoUrl: req.file.path, isFree: req.body.isFree == "1" })
   //@ts-expect-error
   await user.addVideo(picture)
   res.send({ success: 'Video added' });

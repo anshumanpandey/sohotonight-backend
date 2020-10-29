@@ -5,7 +5,8 @@ import { DataTypes, Model, Optional } from "sequelize";
 interface UserAttributes {
   id: string,
   videoUrl: string,
-  price: number,
+  price?: number,
+  isFree?: boolean,
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
@@ -25,6 +26,10 @@ export const VideoModel = sequelize.define<UserInstance>("Video", {
   },
   price: {
     type: DataTypes.FLOAT({ length: 10, decimals: 2 }),
-    allowNull: false
+    allowNull: true
+  },
+  isFree: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
 })

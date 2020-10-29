@@ -18,6 +18,7 @@ interface UserAttributes {
   firstName?: string,
   lastName?: string,
   phoneNumber?: string
+  callNumber?: string
   town?: string
   gender?: string
   postCode?: string
@@ -92,6 +93,11 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     type: DataTypes.STRING,
     allowNull: true,
     defaultValue: null
+  },
+  callNumber: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "+1 1223334444"
   },
   railStation: {
     type: DataTypes.STRING,

@@ -15,6 +15,7 @@ import { VideoModel } from '../models/video.model';
 import GenerateUploadMiddleware from '../utils/GenerateUploadMiddleware';
 import { PostModel } from '../models/post.model';
 import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
+import { sendEmail } from '../utils/Mail';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -81,6 +82,11 @@ userRoutes.post('/login', validateParams(checkSchema({
 userRoutes.post('/logout', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
   await UserModel.update({ isLogged: true }, { where: { id: req.user.id }})
+  res.send({ success: true  });
+}));
+
+userRoutes.post('/public/contact', asyncHandler(async (req, res) => {
+  await sendEmail({ body: `${req.body.message}\nname:${req.body.name}\nemail:${req.body.email}`, subject: 'Contact' })
   res.send({ success: true  });
 }));
 

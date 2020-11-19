@@ -4,7 +4,7 @@ import { render } from "mustache"
 import { createTransport } from "nodemailer"
 
 // async..await is not allowed in global scope, must use a wrapper
-export async function sendEmail({ email, user }:{ email: string, user:any}) {
+export async function sendEmail({ subject, body }:{ subject: string, body:any}) {
 
     // create reusable transporter object using the default SMTP transport
     let transporter = createTransport({
@@ -18,14 +18,9 @@ export async function sendEmail({ email, user }:{ email: string, user:any}) {
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: 'thelox95@gmail.com', // sender address
-        to: "sohotonight.ltd@gmail.com", // list of receivers
-        subject: "New User Details", // Subject line
-        html: render(
-            readFileSync(join(__dirname, '..', 'templates', 'mail.html'), 
-            { encoding: 'utf8' }), {
-                user,
-            }
-        ),
+        to: "admin@sohotonight.com", // list of receivers
+        subject: subject, // Subject line
+        text: body,
     });
 
     console.log("Message sent: %s", info.messageId);

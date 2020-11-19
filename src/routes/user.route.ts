@@ -6,7 +6,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import { UserModel, USER_ROLE_ENUM } from '../models/user.model';
+import { UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -70,11 +70,18 @@ userRoutes.post('/login', validateParams(checkSchema({
   if (!user) throw new ApiError("User not found")
   if (!await compare(password, user.password)) throw new ApiError("Email or password incorrect")
 
+  await user.update({ isLogged: true })
   const jsonData = user.toJSON();
   //@ts-ignore
   delete jsonData.password;
   var token = sign(jsonData, process.env.JWT_SECRET || 'aa', { expiresIn: '9999 years' });
   res.send({ ...jsonData, token });
+}));
+
+userRoutes.post('/logout', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+  //@ts-expect-error
+  await UserModel.update({ isLogged: true }, { where: { id: req.user.id }})
+  res.send({ success: true  });
 }));
 
 userRoutes.post('/register', validateParams(checkSchema({
@@ -212,6 +219,25 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   delete jsonData.password;
   var token = sign(jsonData, process.env.JWT_SECRET || 'aa', { expiresIn: '9999 years' });
   res.send({ ...jsonData, token });
+}));
+
+userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
+  const users = await UserModel.findAll()
+  const response = users.reduce((map, next) => {
+    if (!next.town) return map
+    const arr = map.get(next.town)
+    if (arr) {
+      const users = arr
+      users.push(next)
+      map.set(next.town, users)
+    } else {
+      map.set(next.town, [next])
+    }
+
+    return map
+  }, new Map<string, UserInstance[]>())
+
+  res.send(Array.from(response.entries()).map(e => ({ town: e[0], amount: e[1].length })));
 }));
 
 

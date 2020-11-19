@@ -48,6 +48,8 @@ interface UserAttributes {
 
   isTrans: string
 
+  isLogged: boolean
+
   profilePic?: string
   bannerImage?: string
   authenticationProfilePic: string
@@ -55,7 +57,7 @@ interface UserAttributes {
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
 
-interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes { }
+export interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes { }
 
 export const RoleKeys = Object.values(USER_ROLE_ENUM).filter(k => !Number.isInteger(k)) as string[]
 
@@ -162,6 +164,10 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     type: DataTypes.STRING,
     allowNull: true,
     defaultValue: null
+  },
+  isLogged: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   escortServices: {
     type: DataTypes.BOOLEAN,

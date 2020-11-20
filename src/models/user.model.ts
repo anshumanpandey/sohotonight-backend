@@ -4,6 +4,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 import { PictureModel } from "./picture.model";
 import { VideoModel } from "./video.model";
 import { PostModel } from "./post.model";
+import { ServiceModel } from "./services.model";
 
 export enum USER_ROLE_ENUM {
   SUPER_ADMIN = "Super_admin",
@@ -231,3 +232,6 @@ VideoModel.belongsTo(UserModel);
 
 UserModel.hasMany(PostModel);
 PostModel.belongsTo(UserModel);
+
+UserModel.hasMany(ServiceModel);
+ServiceModel.belongsTo(UserModel);

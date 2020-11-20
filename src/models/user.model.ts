@@ -53,6 +53,7 @@ interface UserAttributes {
   profilePic?: string
   bannerImage?: string
   authenticationProfilePic: string
+  authenticationProfilePicIsAuthenticated: boolean
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
@@ -215,7 +216,11 @@ export const UserModel = sequelize.define<UserInstance>("User", {
   hasAdultContentCertification: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-  },  
+  },
+  authenticationProfilePicIsAuthenticated: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 })
 
 UserModel.hasMany(PictureModel);

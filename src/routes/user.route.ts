@@ -16,6 +16,7 @@ import GenerateUploadMiddleware from '../utils/GenerateUploadMiddleware';
 import { PostModel } from '../models/post.model';
 import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
+import { ServiceModel } from '../models/services.model';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -65,6 +66,7 @@ userRoutes.post('/login', validateParams(checkSchema({
   const { nickname, password } = req.body;
   const user = await UserModel.findOne({
     where: { nickname },
+    include: [{ model: ServiceModel }],
     attributes: { exclude: ["createdAt", "updatedAt"] }
   });
 

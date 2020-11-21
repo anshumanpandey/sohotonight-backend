@@ -233,5 +233,5 @@ VideoModel.belongsTo(UserModel);
 UserModel.hasMany(PostModel);
 PostModel.belongsTo(UserModel);
 
-UserModel.hasMany(ServiceModel);
-ServiceModel.belongsTo(UserModel);
+UserModel.belongsToMany(ServiceModel, { through: "User_Services" });
+ServiceModel.belongsToMany(UserModel, { through: "User_Services" });

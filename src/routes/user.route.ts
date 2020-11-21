@@ -219,9 +219,13 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   //@ts-expect-error
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
   //@ts-expect-error
-  const u = await UserModel.findByPk(req.user.id)
+  let u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
+  const servicesId = req.body.Services.split(",")
+  const services = await ServiceModel.findAll({ where: { id: servicesId} })
   //@ts-expect-error
-  await u.setServices(await ServiceModel.findAll({ where: { id: req.body.Services.split(",")} }))
+  u = await u.setServices(services)
+  //@ts-expect-error
+  u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
 
   //@ts-ignore
   const jsonData = u.toJSON();
@@ -252,7 +256,7 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 
 
 userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
-  res.send(await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: VideoModel }, { model: PostModel }] }));
+  res.send(await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] }));
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {

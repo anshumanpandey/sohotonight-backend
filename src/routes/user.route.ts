@@ -264,8 +264,7 @@ userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
-  //@ts-expect-error
-  res.send(await UserModel.findAll({}, { attributes: { exclude: ["password"] } }));
+  res.send(await UserModel.findAll({ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] }));
 }));
 
 userRoutes.get('/public/getImages/:id?', asyncHandler(async (req, res) => {

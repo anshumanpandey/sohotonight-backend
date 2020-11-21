@@ -240,7 +240,7 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
 }));
 
 userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
-  const users = await UserModel.findAll()
+  const users = await UserModel.findAll({ where: { authenticationProfilePicIsAuthenticated: true }})
   const response = users.reduce((map, next) => {
     if (!next.town) return map
     const arr = map.get(next.town)

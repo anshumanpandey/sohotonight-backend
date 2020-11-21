@@ -101,7 +101,7 @@ export const UserModel = sequelize.define<UserInstance>("User", {
   callNumber: {
     type: DataTypes.STRING,
     allowNull: true,
-    defaultValue: "+1 1223334444"
+    defaultValue: ""
   },
   railStation: {
     type: DataTypes.STRING,

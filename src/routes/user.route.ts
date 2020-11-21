@@ -221,9 +221,9 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   //@ts-expect-error
   let u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
   const servicesId = req.body.Services.split(",")
-  const services = await ServiceModel.findAll({ where: { id: servicesId} })
 
-  if (services.length != 0){
+  if (servicesId.length != 0){
+    const services = await ServiceModel.findAll({ where: { id: servicesId } })
     //@ts-expect-error
     u = await u.setServices(services)
   }

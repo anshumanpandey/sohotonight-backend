@@ -183,7 +183,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
-  const user = await UserModel.create({ password: hashedPass, nickname,emailAddress, ...fields })
+  const user = await UserModel.create({ password: hashedPass, nickname,emailAddress, ...fields }, { include: [{ model: ServiceModel }]})
 
   const jsonData = user.toJSON();
   //@ts-ignore
@@ -219,7 +219,9 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   //@ts-expect-error
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
   //@ts-expect-error
-  const u = await UserModel.findByPk(req.user.id)  
+  const u = await UserModel.findByPk(req.user.id)
+  //@ts-expect-error
+  await u.setServices(await ServiceModel.findAll({ where: { id: req.body.Services.split(",")} }))
 
   //@ts-ignore
   const jsonData = u.toJSON();

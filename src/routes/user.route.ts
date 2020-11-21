@@ -83,7 +83,7 @@ userRoutes.post('/login', validateParams(checkSchema({
 
 userRoutes.post('/logout', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
   //@ts-expect-error
-  await UserModel.update({ isLogged: true }, { where: { id: req.user.id }})
+  await UserModel.update({ isLogged: false }, { where: { id: req.user.id }})
   res.send({ success: true  });
 }));
 

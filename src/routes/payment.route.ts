@@ -112,10 +112,19 @@ paymentRoutes.post('/create', validateParams(checkSchema({
 
   if (!asset) throw new ApiError("Asset not found");
 
+  //@ts-expect-error
+  const donwloadLink = asset.videoUrl || asset.imageName
+
   await sendEmail({
     subject: "Payment successfully created on SohoTonight",
-    //@ts-expect-error
-    body: `Your access link is : ${asset.videoUrl || asset.imageName}`,
+    body: `Thanks you for your purchase on soho tonight.
+
+You can access your purchased picture/video by clicking the link below -
+${donwloadLink}
+
+Regards
+Soho Tonight Team 
+`,
     to: req.body.email
   })
 

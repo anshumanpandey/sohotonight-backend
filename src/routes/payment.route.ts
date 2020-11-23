@@ -115,7 +115,8 @@ paymentRoutes.post('/create', validateParams(checkSchema({
   await sendEmail({
     subject: "Payment successfully created on SohoTonight",
     //@ts-expect-error
-    body: `Your access link is : ${asset.videoUrl || asset.imageName}`
+    body: `Your access link is : ${asset.videoUrl || asset.imageName}`,
+    to: req.body.email
   })
 
   res.send({ success: 'Payment Created' });

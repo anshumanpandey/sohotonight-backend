@@ -4,6 +4,10 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { PaymentModel } from '../models/payment.model';
+import { PictureModel } from '../models/picture.model';
+import { VideoModel } from '../models/video.model';
+import { ApiError } from '../utils/ApiError';
+import { sendEmail } from '../utils/Mail';
 
 export const paymentRoutes = express();
 
@@ -98,6 +102,21 @@ paymentRoutes.post('/create', validateParams(checkSchema({
   },
 })), asyncHandler(async (req, res) => {
   await PaymentModel.create(req.body);
+
+  let asset = null;
+  if (req.body.assetType == "picture") {
+    asset = await PictureModel.findByPk(req.body.assetId);
+  } else {
+    asset = await VideoModel.findByPk(req.body.assetId);
+  }
+
+  if (!asset) throw new ApiError("Asset not found");
+
+  await sendEmail({
+    subject: "Payment successfully created on SohoTonight",
+    //@ts-expect-error
+    body: `Your access link is : ${asset.videoUrl || asset.imageName}`
+  })
 
   res.send({ success: 'Payment Created' });
 }));

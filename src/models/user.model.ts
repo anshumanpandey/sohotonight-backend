@@ -224,6 +224,35 @@ export const UserModel = sequelize.define<UserInstance>("User", {
   },
 })
 
+//@ts-expect-error
+export const clearUrlFromAsset = function(user) {
+  const filteredVideos = user?.Videos.map((vid: any) => {
+    const v = vid.toJSON()
+    if (v.isFree == false) {
+      const { videoUrl, ...video} = v
+      return video
+    } 
+    return v
+  })
+
+  //@ts-expect-error
+  const filteredPictures = user?.Pictures.map(vid => {
+    const v = vid.toJSON()
+    if (v.isFree == false) {
+      const { imageName, ...video} = v
+      return video
+    } 
+    return v
+  })
+
+  const u = user?.toJSON();
+
+  u.Videos = filteredVideos
+  u.Pictures = filteredPictures
+
+  return u
+};
+
 UserModel.hasMany(PictureModel);
 PictureModel.belongsTo(UserModel);
 

@@ -6,7 +6,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import { UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
+import { clearUrlFromAsset, UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -259,8 +259,15 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 }));
 
 
-userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
-  res.send(await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] }));
+userRoutes.get('/public/getUser/:id?', jwt({ credentialsRequired: false, secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+  const user = await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
+  if (!user) throw new ApiError("User not found")
+  let response = user
+  //@ts-expect-error
+  if (!req.user || req.params.id != req.user.id){
+    response = clearUrlFromAsset(user)
+  }
+  res.send(response);
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {

@@ -29,7 +29,7 @@ smsRoutes.post('/track', asyncHandler(async (req, res) => {
   if (!user.phoneNumber) throw new ApiError("User has  not phone number assigned");
 
   const twiml = new MessagingResponse();
-  twiml.message({ to: user.callNumber, from: user.phoneNumber }, req.body.Body )
+  twiml.message({ to: user.phoneNumber, from: user.callNumber }, req.body.Body )
 
   res.set('Content-Type', 'text/xml');
   res.send(twiml.toString());

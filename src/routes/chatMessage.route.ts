@@ -49,9 +49,9 @@ chatMessage.post('/send', validateParams(checkSchema({
   if (!user) throw new ApiError("User not found")
 
   await ChatMessage.create({ toUserId: user.id, body: req.body.body, fromUser: req.body.fromUser })
-  if (user.callNumber) {
+  if (user.phoneNumber) {
     // we dont await the forwarding of the sms to in case of failing dont send error response
-    forwardSms({ toPhone: user.callNumber, body: req.body.body })
+    forwardSms({ toPhone: user.phoneNumber, from: user.callNumber, body: req.body.body })
   }
 
   res.send({ success: "Message sended" });

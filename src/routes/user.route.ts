@@ -17,6 +17,7 @@ import { PostModel } from '../models/post.model';
 import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
 import { ServiceModel } from '../models/services.model';
+import { createIncomingPhoneNumber } from '../utils/TwilioClient';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -183,7 +184,10 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
-  const user = await UserModel.create({ password: hashedPass, nickname,emailAddress, ...fields }, { include: [{ model: ServiceModel }]})
+  const userData = { password: hashedPass, nickname,emailAddress, ...fields }
+  const callNumberObj = await createIncomingPhoneNumber()
+  userData.callNumber = callNumberObj.phoneNumber
+  const user = await UserModel.create(userData, { include: [{ model: ServiceModel }]})
 
   const jsonData = user.toJSON();
   //@ts-ignore

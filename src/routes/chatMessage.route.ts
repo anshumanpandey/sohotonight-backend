@@ -6,7 +6,7 @@ import { ChatMessage } from '../models/chatMessage.model';
 var jwt = require('express-jwt');
 import { UserModel } from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
-import { forwardSms } from '../utils/TwilioClient';
+import { forwardSms, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
 
 export const chatMessage = express();
 
@@ -49,9 +49,9 @@ chatMessage.post('/send', validateParams(checkSchema({
   if (!user) throw new ApiError("User not found")
 
   await ChatMessage.create({ toUserId: user.id, body: req.body.body, fromUser: req.body.fromUser })
-  if (user.phoneNumber) {
+  if (user.callNumber) {
     // we dont await the forwarding of the sms to in case of failing dont send error response
-    forwardSms({ toPhone: user.phoneNumber, from: user.callNumber, body: req.body.body })
+    forwardSms({ toPhone: user.callNumber, from: TWILIO_INTERNAL_NUM, body: req.body.body })
   }
 
   res.send({ success: "Message sended" });

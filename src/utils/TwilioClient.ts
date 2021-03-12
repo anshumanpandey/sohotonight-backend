@@ -39,6 +39,6 @@ export const forwardSms = async ({ body, toPhone, from = TWILIO_INTERNAL_NUM }: 
 }
 
 export const createIncomingPhoneNumber = async () => {
-    const n = await twilioClient.incomingPhoneNumbers.create({ smsUrl: "http://3.21.204.83:5000/api/sms/track", areaCode: "407" })
+    const n = await twilioClient.incomingPhoneNumbers.create({ smsMethod: "POST", smsUrl: "http://3.21.204.83:5000/api/sms/track", areaCode: "407" })
     return n
 }

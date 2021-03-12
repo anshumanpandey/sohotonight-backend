@@ -1,5 +1,5 @@
 {
-  "name": "passport-backend",
+  "name": "sohotonight-backend",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -43,7 +43,6 @@
     "sequelize": "^6.2.4",
     "sqlite3": "^5.0.0",
     "ts-node": "^8.10.2",
-    "tsc": "^1.20150623.0",
     "twilio": "^3.57.0",
     "typescript": "^3.9.6",
     "uuid": "^8.3.1"

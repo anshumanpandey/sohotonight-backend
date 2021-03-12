@@ -14,6 +14,6 @@ export const smsRoutes = express();
 
 smsRoutes.post('/track', asyncHandler(async (req, res) => {
   console.log(req.body)
-  const sms = await SmsModel.create({ body: req.body.Body, toNumber: "asdasd", fromNumber: "asd", direction: SMS_DIRECTION.INCOMING })
+  const sms = await SmsModel.create({ body: req.body.Body, toNumber: req.body.To, fromNumber: req.body.From, direction: SMS_DIRECTION.INCOMING })
   res.send({ success: "Tracked" });
 }));

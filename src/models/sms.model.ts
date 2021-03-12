@@ -25,8 +25,8 @@ export interface TwilioSmsWebhookBody {
 }
 
 export enum SMS_DIRECTION {
-    INCOMING,
-    OUTGOING,
+  INCOMING = "INCOMING",
+  OUTGOING = "OUTGOING",
 }
 
 interface SmsAttributes {

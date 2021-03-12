@@ -1,19 +1,23 @@
 import express from 'express';
-var jwt = require('express-jwt');
 import asyncHandler from "express-async-handler"
-import { checkSchema } from "express-validator"
-import { UserModel, USER_ROLE_ENUM } from '../models/user.model';
-import { validateParams } from '../middlewares/routeValidation.middleware';
-import { PictureModel } from '../models/picture.model';
-import { VideoModel } from '../models/video.model';
-import { PostModel } from '../models/post.model';
-import MessagingResponse from 'twilio/lib/twiml/MessagingResponse';
 import { SmsModel, SMS_DIRECTION } from '../models/sms.model';
+import { UserModel } from '../models/user.model';
+import { ApiError } from '../utils/ApiError';
+import { forwardSms, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
 
 export const smsRoutes = express();
 
 smsRoutes.post('/track', asyncHandler(async (req, res) => {
   console.log(req.body)
-  const sms = await SmsModel.create({ body: req.body.Body, toNumber: req.body.To, fromNumber: req.body.From, direction: SMS_DIRECTION.INCOMING })
-  res.send({ success: "Tracked" });
+
+  await SmsModel.create({ body: req.body.Body, toNumber: req.body.To, fromNumber: req.body.From, direction: SMS_DIRECTION.INCOMING })
+  const user = await UserModel.findOne({ where: { callNumber: req.body.To }})
+
+  if (!user) throw new ApiError(`User with phone number ${req.body.To} not found`);
+  if (!user.phoneNumber) throw new ApiError("User has  not phone number assigned");
+
+  const forward = forwardSms({ to: user.phoneNumber, from: TWILIO_INTERNAL_NUM, body: req.body.Body })
+
+  res.set('Content-Type', 'text/xml');
+  res.send(forward.toString());
 }));

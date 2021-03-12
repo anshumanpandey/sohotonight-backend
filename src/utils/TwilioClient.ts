@@ -1,6 +1,6 @@
 const accountSid = 'ACed37e593dbfe02693f10a309d5b7e8d7'; // Your Account SID from www.twilio.com/console
 const authToken = '6ed30d8ee2c16d32a98a5b12720a3862';   // Your Auth Token from www.twilio.com/console
-export const TWILIO_INTERNAL_NUM = "+1 256 474 8382"
+export const TWILIO_INTERNAL_NUM = "+12564748382"
 
 import { Twilio } from "twilio"
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";

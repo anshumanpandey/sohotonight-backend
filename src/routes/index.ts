@@ -4,7 +4,7 @@ import { paymentRoutes } from './payment.route';
 import { postRoutes } from './post.route';
 import { serviceRoutes } from './services.route';
 import { userRoutes } from './user.route';
-import { smsRoutes } from './sms.route';
+import { chatMessage } from './chatMessage.route';
 
 export const routes = express();
 
@@ -13,4 +13,5 @@ routes.use("/post",postRoutes)
 routes.use("/payment",paymentRoutes)
 routes.use("/assets",assetsRoutes)
 routes.use("/services",serviceRoutes)
-routes.use("/sms",smsRoutes)
+routes.use("/chat",chatMessage)
+routes.use("/sms",chatMessage)

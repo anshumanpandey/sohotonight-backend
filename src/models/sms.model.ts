@@ -27,6 +27,12 @@ export interface TwilioSmsWebhookBody {
 export enum SMS_DIRECTION {
   INCOMING = "INCOMING",
   OUTGOING = "OUTGOING",
+  FORWARD = "FORWARD",
+}
+
+export enum SMS_SEND_STATUS {
+  SENDED = "SENDED",
+  FAILED_TO_SEND = "FAILED_TO_SEND",
 }
 
 interface SmsAttributes {
@@ -35,6 +41,9 @@ interface SmsAttributes {
   toNumber: string,
   fromNumber: string,
   direction: SMS_DIRECTION,
+  status: SMS_SEND_STATUS,
+  fail_reason?: string,
+  twilio_sid?: string,
 }
 
 interface SmsCreationAttributes extends Optional<SmsAttributes, "id"> { }
@@ -63,5 +72,17 @@ export const SmsModel = sequelize.define<SmsInstance>("Sms", {
   direction: {
     type: DataTypes.STRING(2000),
     allowNull: false
+  },
+  status: {
+    type: DataTypes.STRING(2000),
+    allowNull: false
+  },
+  fail_reason: {
+    type: DataTypes.STRING(2000),
+    allowNull: true
+  },
+  twilio_sid: {
+    type: DataTypes.STRING(2000),
+    allowNull: true
   },
 })

@@ -10,9 +10,9 @@ import { PostModel } from '../models/post.model';
 import MessagingResponse from 'twilio/lib/twiml/MessagingResponse';
 import { SmsModel, SMS_DIRECTION } from '../models/sms.model';
 
-export const postRoutes = express();
+export const smsRoutes = express();
 
-postRoutes.post('/track', asyncHandler(async (req, res) => {
+smsRoutes.post('/track', asyncHandler(async (req, res) => {
   console.log(req.body)
   const sms = await SmsModel.create({ body: req.body.Body, toNumber: "asdasd", fromNumber: "asd", direction: SMS_DIRECTION.INCOMING })
   res.send({ success: "Tracked" });

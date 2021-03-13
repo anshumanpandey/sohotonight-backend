@@ -63,8 +63,8 @@ const bootstrap = () => {
 }
 
 if (process.env.HTTPS_ENABLED) {
-    var privateKey  = fs.readFileSync('./privkey.pem', 'utf8');
-    var certificate = fs.readFileSync('./cert.pem', 'utf8');
+    var privateKey  = fs.readFileSync('../privkey.pem', 'utf8');
+    var certificate = fs.readFileSync('../cert.pem', 'utf8');
     var credentials = {key: privateKey, cert: certificate};
     var httpsServer = https.createServer(credentials, app);
 }

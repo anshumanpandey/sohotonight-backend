@@ -46,11 +46,11 @@ export const createIncomingPhoneNumber = async () => {
 
 export const generateVoiceCallToken = async () => {
     if (!accountSid) return null
-    if (!process.env.TWILIO_APIKET_SID) return null
-    if (!process.env.TWILIO_APIKET_SECRET) return null
+    if (!process.env.TWILIO_APIKEY_SID) return null
+    if (!process.env.TWILIO_APIKEY_SECRET) return null
     if (!process.env.TWILIO_TWIML_SECRET_SID) return null
 
-    const accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKET_SID, process.env.TWILIO_APIKET_SECRET);
+    const accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKEY_SID, process.env.TWILIO_APIKEY_SECRET);
     accessToken.identity = "Call@mail.com";
 
     const grant = new VoiceGrant({

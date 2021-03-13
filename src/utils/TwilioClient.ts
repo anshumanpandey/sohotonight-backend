@@ -2,7 +2,8 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.
 const authToken = process.env.TWILIO_ACCOUNT_TOKEN;   // Your Auth Token from www.twilio.com/console
 export const TWILIO_INTERNAL_NUM = "+12564748382"
 
-import { Twilio } from "twilio"
+import { Twilio, twiml } from "twilio"
+import AccessToken, { VoiceGrant } from "twilio/lib/jwt/AccessToken";
 import { SmsModel, SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
 const twilioClient = new Twilio(accountSid || "", authToken || "");
 
@@ -41,4 +42,31 @@ export const forwardSms = async ({ body, toPhone, from = TWILIO_INTERNAL_NUM }: 
 export const createIncomingPhoneNumber = async () => {
     const n = await twilioClient.incomingPhoneNumbers.create({ smsMethod: "POST", smsUrl: "http://3.21.204.83:5000/api/sms/track", areaCode: "407" })
     return n
+}
+
+export const generateVoiceCallToken = async () => {
+    if (!accountSid) return null
+    if (!process.env.TWILIO_APIKET_SID) return null
+    if (!process.env.TWILIO_APIKET_SECRET) return null
+    if (!process.env.TWILIO_TWIML_SECRET_SID) return null
+
+    const accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKET_SID, process.env.TWILIO_APIKET_SECRET);
+    accessToken.identity = "Call@mail.com";
+
+    const grant = new VoiceGrant({
+        outgoingApplicationSid: process.env.TWILIO_TWIML_SECRET_SID,
+        incomingAllow: true,
+    });
+    accessToken.addGrant(grant);
+
+    return accessToken
+}
+
+export const responseCall = () => {
+    const twimlResponse = new twiml.VoiceResponse();
+
+    var dial = twimlResponse.dial();
+    dial.client({}, "Call@mail.com");
+
+    return twiml
 }

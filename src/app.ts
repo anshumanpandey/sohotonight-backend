@@ -62,7 +62,7 @@ const bootstrap = () => {
     return sequelize.authenticate()
 }
 
-let httpsServer = null
+let httpsServer: null | https.Server = null
 
 if (process.env.HTTPS_ENABLED) {
     const privateKey  = fs.readFileSync(__dirname + '/../privkey.key', 'utf8');

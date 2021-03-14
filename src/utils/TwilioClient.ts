@@ -62,11 +62,11 @@ export const generateVoiceCallToken = async ({ identity }: { identity: string })
     return accessToken
 }
 
-export const responseCall = () => {
+export const responseCall = ({ recipient }: { recipient: string }) => {
     const twimlResponse = new twiml.VoiceResponse();
 
     var dial = twimlResponse.dial();
-    dial.client({}, "Call@mail.com");
+    dial.client({}, recipient);
 
     return twiml
 }

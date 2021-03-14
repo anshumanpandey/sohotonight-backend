@@ -15,9 +15,8 @@ callRoutes.get('/generateCallToken', asyncHandler(async (req, res) => {
 
 callRoutes.post('/responseCall', asyncHandler(async (req, res) => {
   console.log(req.body)
-  const response = responseCall()
+  const response = responseCall({ recipient: req.body.recipient })
 
   res.set('Content-Type', 'text/xml');
   res.send(response.VoiceResponse.toString());
 }));
-

@@ -18,5 +18,5 @@ callRoutes.post('/responseCall', asyncHandler(async (req, res) => {
   const response = responseCall({ recipient: req.body.recipient })
 
   res.set('Content-Type', 'text/xml');
-  res.send(response.VoiceResponse.toString());
+  res.send(response.toString());
 }));

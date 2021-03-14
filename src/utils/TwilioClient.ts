@@ -68,5 +68,5 @@ export const responseCall = ({ recipient }: { recipient: string }) => {
     var dial = twimlResponse.dial();
     dial.client({}, recipient);
 
-    return twiml
+    return twimlResponse
 }

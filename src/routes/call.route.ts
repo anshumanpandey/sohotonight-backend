@@ -18,6 +18,6 @@ callRoutes.post('/responseCall', asyncHandler(async (req, res) => {
   const response = responseCall()
 
   res.set('Content-Type', 'text/xml');
-  res.send(response.toString());
+  res.send(response.VoiceResponse.toString());
 }));
 

@@ -44,14 +44,14 @@ export const createIncomingPhoneNumber = async () => {
     return n
 }
 
-export const generateVoiceCallToken = async () => {
+export const generateVoiceCallToken = async ({ identity }: { identity: string }) => {
     if (!accountSid) return null
     if (!process.env.TWILIO_APIKEY_SID) return null
     if (!process.env.TWILIO_APIKEY_SECRET) return null
     if (!process.env.TWILIO_TWIML_SECRET_SID) return null
 
     const accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKEY_SID, process.env.TWILIO_APIKEY_SECRET);
-    accessToken.identity = "Call@mail.com";
+    accessToken.identity = identity;
 
     const grant = new VoiceGrant({
         outgoingApplicationSid: process.env.TWILIO_TWIML_SECRET_SID,

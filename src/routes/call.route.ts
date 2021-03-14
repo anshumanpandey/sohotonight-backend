@@ -7,7 +7,7 @@ export const callRoutes = express();
 
 
 callRoutes.get('/generateCallToken', asyncHandler(async (req, res) => {
-  const callToken = await generateVoiceCallToken()
+  const callToken = await generateVoiceCallToken({ identity: req.query.identity?.toString() || "Caller1" })
   if (!callToken) throw new ApiError("Could not generate token")
 
   res.send({ token: callToken.toJwt() });

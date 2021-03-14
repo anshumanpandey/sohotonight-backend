@@ -73,11 +73,11 @@ export const responseCall = ({ recipient }: { recipient: string }) => {
 
 export const generateVideoCallToken = ({ identity, roomName }: { identity: string, roomName: string }) => {
     if (!accountSid) return null
-    if (!process.env.TWILIO_APIKEY_SID) return null
-    if (!process.env.TWILIO_APIKEY_SECRET) return null
+    if (!process.env.TWILIO_VIDEO_APIKEY_SID) return null
+    if (!process.env.TWILIO_VIDEO_APIKEY_SECRET) return null
 
     // Create an Access Token
-    var accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKEY_SID, process.env.TWILIO_APIKEY_SECRET);
+    var accessToken = new AccessToken(accountSid, process.env.TWILIO_VIDEO_APIKEY_SID, process.env.TWILIO_VIDEO_APIKEY_SECRET);
 
     // Set the Identity of this token
     accessToken.identity = identity;

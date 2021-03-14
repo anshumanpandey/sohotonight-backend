@@ -3,7 +3,7 @@ const authToken = process.env.TWILIO_ACCOUNT_TOKEN;   // Your Auth Token from ww
 export const TWILIO_INTERNAL_NUM = "+12564748382"
 
 import { Twilio, twiml } from "twilio"
-import AccessToken, { VoiceGrant } from "twilio/lib/jwt/AccessToken";
+import AccessToken, { VideoGrant, VoiceGrant } from "twilio/lib/jwt/AccessToken";
 import { SmsModel, SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
 const twilioClient = new Twilio(accountSid || "", authToken || "");
 
@@ -69,4 +69,24 @@ export const responseCall = ({ recipient }: { recipient: string }) => {
     dial.client({}, recipient);
 
     return twimlResponse
+}
+
+export const generateVideoCallToken = ({ identity, roomName }: { identity: string, roomName: string }) => {
+    if (!accountSid) return null
+    if (!process.env.TWILIO_APIKEY_SID) return null
+    if (!process.env.TWILIO_APIKEY_SECRET) return null
+
+    // Create an Access Token
+    var accessToken = new AccessToken(accountSid, process.env.TWILIO_APIKEY_SID, process.env.TWILIO_APIKEY_SECRET);
+
+    // Set the Identity of this token
+    accessToken.identity = identity;
+
+    // Grant access to Video
+    var grant = new VideoGrant();
+    grant.room = roomName;
+    accessToken.addGrant(grant);
+
+    // Serialize the token as a JWT
+    return accessToken
 }

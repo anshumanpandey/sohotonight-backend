@@ -5,13 +5,20 @@ import { PictureModel } from "./picture.model";
 import { VideoModel } from "./video.model";
 import { PostModel } from "./post.model";
 import { ServiceModel } from "./services.model";
+import { PaymentModel } from "./payment.model";
 
 export enum USER_ROLE_ENUM {
   SUPER_ADMIN = "Super_admin",
   ESCORT = "Escort",
   CAM = "Cam",
-  MASSAGE = "Massage"
+  MASSAGE = "Massage",
+  CLIENT = "Client"
 }
+
+export const ALLOWED_ROLE = [
+  USER_ROLE_ENUM.CAM,
+  USER_ROLE_ENUM.CLIENT,
+]
 
 interface UserAttributes {
   id: string,
@@ -23,6 +30,7 @@ interface UserAttributes {
   town?: string
   gender?: string
   postCode?: string
+  tokensBalance: number
   aboutYouSummary?: string
   aboutYouDetail?: string
   orientation?: string
@@ -154,6 +162,10 @@ export const UserModel = sequelize.define<UserInstance>("User", {
     type: DataTypes.STRING,
     defaultValue: "United Kingdom",
   },
+  tokensBalance: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
   inches: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
@@ -261,6 +273,9 @@ VideoModel.belongsTo(UserModel);
 
 UserModel.hasMany(PostModel);
 PostModel.belongsTo(UserModel);
+
+UserModel.hasMany(PaymentModel);
+PaymentModel.belongsTo(UserModel);
 
 UserModel.belongsToMany(ServiceModel, { through: "User_Services" });
 ServiceModel.belongsToMany(UserModel, { through: "User_Services" });

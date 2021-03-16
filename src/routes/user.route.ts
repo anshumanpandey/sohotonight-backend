@@ -6,7 +6,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import { clearUrlFromAsset, UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
+import { ALLOWED_ROLE, clearUrlFromAsset, UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -18,6 +18,7 @@ import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
 import { ServiceModel } from '../models/services.model';
 import { createIncomingPhoneNumber } from '../utils/TwilioClient';
+import { JwtMiddleware } from '../utils/JwtMiddleware';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -83,7 +84,6 @@ userRoutes.post('/login', validateParams(checkSchema({
 }));
 
 userRoutes.post('/logout', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
   await UserModel.update({ isLogged: false }, { where: { id: req.user.id }})
   res.send({ success: true  });
 }));
@@ -177,16 +177,16 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (password != confirmPassword) throw new ApiError("Password not match")
 
   const [ byEmail, byNickname] = await Promise.all([
-    await UserModel.findOne({ where: { emailAddress } }),
-    await UserModel.findOne({ where: { nickname } }),
+    UserModel.findOne({ where: { emailAddress } }),
+    UserModel.findOne({ where: { nickname } }),
   ])
   if (byEmail) throw new ApiError("Email already registered")
   if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
   const userData = { password: hashedPass, nickname,emailAddress, ...fields }
-  const callNumberObj = await createIncomingPhoneNumber()
-  userData.callNumber = callNumberObj.phoneNumber
+  /*const callNumberObj = await createIncomingPhoneNumber()
+  userData.callNumber = callNumberObj.phoneNumber*/
   const user = await UserModel.create(userData, { include: [{ model: ServiceModel }]})
 
   const jsonData = user.toJSON();
@@ -217,12 +217,10 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   }
   //@ts-expect-error
   if (req.files?.authenticatePic) {
-    //@ts-expect-error
+  //@ts-expect-error
     fieldsToUpdate.authenticationProfilePic = req.files.authenticatePic[0].path
   }
-  //@ts-expect-error
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
-  //@ts-expect-error
   let u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
   const servicesId = req.body.Services.split(",")
 
@@ -232,7 +230,6 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
     u = await u.setServices(services)
   }
   
-  //@ts-expect-error
   u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
 
   //@ts-ignore
@@ -267,7 +264,6 @@ userRoutes.get('/public/getUser/:id?', jwt({ credentialsRequired: false, secret:
   const user = await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user
-  //@ts-expect-error
   if (!req.user || req.params.id != req.user.id){
     response = clearUrlFromAsset(user)
   }
@@ -284,7 +280,6 @@ userRoutes.get('/public/getImages/:id?', asyncHandler(async (req, res) => {
   res.send(await user?.getPictures());
 }));
 userRoutes.get('/getVideos', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
   //@ts-expect-error
   res.send(await user?.getVideos());
@@ -322,15 +317,13 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
     },
   },
 })), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
-  const picture = await VideoModel.findOne({ where: { id: req.body.videoId, "UserId": req.user.id }})
+  const picture = await VideoModel.findOne({ where: { id: req.body.videoId, UserId: req.user.id }})
   if (!picture) throw new ApiError("Picture not found")
   await picture.destroy()
   res.send({ success: true });
 }));
 
 userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
   const user = await UserModel.findByPk(req.user.id)
   const picture = await PictureModel.create({ price: req.body.price || null, imageName: req.file.path, isFree: req.body.isFree == "1" })
   //@ts-expect-error
@@ -338,10 +331,9 @@ userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.e
   res.send({ success: 'Image added' });
 }));
 
-userRoutes.post('/addVideo', uploadVideo.single("video"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
+userRoutes.post('/addVideo', uploadVideo.single("video"), JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await VideoModel.create({ price: req.body.price  || null, videoUrl: req.file.path, isFree: req.body.isFree == "1" })
+  const picture = await VideoModel.create({ price: req.body.price  || null, videoUrl: req.file.path, isFree: req.body.isFree == "1", UserId: req.user?.id })
   //@ts-expect-error
   await user.addVideo(picture)
   res.send({ success: 'Video added' });

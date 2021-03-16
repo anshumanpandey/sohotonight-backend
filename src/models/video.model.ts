@@ -7,6 +7,7 @@ interface UserAttributes {
   videoUrl: string,
   price?: number,
   isFree?: boolean,
+  UserId: string
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
@@ -32,5 +33,8 @@ export const VideoModel = sequelize.define<UserInstance>("Video", {
   isFree: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  UserId: {
+    type: DataTypes.STRING,
   },
 })

@@ -8,6 +8,7 @@ import { chatMessage } from './chatMessage.route';
 import { smsRoutes } from './sms.route';
 import { callRoutes } from './call.route';
 import { videoRoutes } from './video.route';
+import { appConfigsRoutes } from './appConfigs.route';
 
 export const routes = express();
 
@@ -20,3 +21,4 @@ routes.use("/chat",chatMessage)
 routes.use("/sms",smsRoutes)
 routes.use("/call",callRoutes)
 routes.use("/video",videoRoutes)
+routes.use("/appConfigs",appConfigsRoutes)

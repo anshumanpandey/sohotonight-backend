@@ -8,6 +8,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 import * as https from "https"
 import * as http from "http"
+import { seedAppConfig } from './seed/SeedAppConfig';
 const fs = require('fs');
 
 const app = express();
@@ -60,6 +61,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 const bootstrap = () => {
     return sequelize.authenticate()
+    .then(() => sequelize.sync())
+    .then(() => seedAppConfig())
 }
 
 let httpsServer: null | https.Server = null

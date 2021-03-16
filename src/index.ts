@@ -4,7 +4,6 @@ import {AddressInfo} from 'net'
 import sequelize from './utils/DB';
 
 bootstrap()
-.then(() => sequelize.sync())
 .then(() => {
     const logConnection = (server: any) => () => {
         const {port, address} = server.address() as AddressInfo;

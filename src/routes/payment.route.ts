@@ -2,11 +2,9 @@ import express from 'express';
 import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { validateParams } from '../middlewares/routeValidation.middleware';
-import { AppConfig } from '../models/appConfig.model';
-import { PaymentModel } from '../models/payment.model';
-import { PictureModel } from '../models/picture.model';
-import { UserModel } from '../models/user.model';
-import { VideoModel } from '../models/video.model';
+import AppConfig from '../models/appConfig.model';
+import PaymentModel from '../models/payment.model';
+import UserModel from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import sequelize from '../utils/DB';
 import { JwtMiddleware } from '../utils/JwtMiddleware';
@@ -52,7 +50,7 @@ paymentRoutes.post('/tokensPurchase', JwtMiddleware(), validateParams(checkSchem
     const user = await UserModel.findOne({ where: { id: req.user?.id } })
     if (!user) throw new ApiError("User not found")
 
-    await UserModel.update({ tokensBalance: user.tokensBalance + (config?.pricePerToken || 1) * req.body.amount }, { where: { id: req.user.id }})
+    await UserModel.update({ tokensBalance: user.tokensBalance + (config?.pricePerToken || 1) * req.body.amount }, { where: { id: req.user.id }, transaction: t })
   })
 
   res.send({ success: 'Payment Created' });

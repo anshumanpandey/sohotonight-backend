@@ -1,23 +1,19 @@
 import express from 'express';
-var jwt = require('express-jwt');
-import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
 import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import { ALLOWED_ROLE, clearUrlFromAsset, UserInstance, UserModel, USER_ROLE_ENUM } from '../models/user.model';
+import UserModel, {  clearUrlFromAsset } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
-import { PictureModel } from '../models/picture.model';
-import { VideoModel } from '../models/video.model';
+import PictureModel from '../models/picture.model';
+import VideoModel from '../models/video.model';
 import GenerateUploadMiddleware from '../utils/GenerateUploadMiddleware';
-import { PostModel } from '../models/post.model';
+import PostModel from '../models/post.model';
 import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
-import { ServiceModel } from '../models/services.model';
-import { createIncomingPhoneNumber } from '../utils/TwilioClient';
+import ServiceModel from '../models/services.model';
 import { JwtMiddleware } from '../utils/JwtMiddleware';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
@@ -83,7 +79,7 @@ userRoutes.post('/login', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.post('/logout', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+userRoutes.post('/logout', JwtMiddleware(), asyncHandler(async (req, res) => {
   await UserModel.update({ isLogged: false }, { where: { id: req.user.id }})
   res.send({ success: true  });
 }));
@@ -196,7 +192,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), JwtMiddleware(), asyncHandler(async (req, res) => {
   const fieldsToUpdate = {
     ...req.body,
     isTrans: req.body.isTrans ? req.body.isTrans === 'true' : undefined,
@@ -254,13 +250,13 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
     }
 
     return map
-  }, new Map<string, UserInstance[]>())
+  }, new Map<string, UserModel[]>())
 
   res.send(Array.from(response.entries()).map(e => ({ town: e[0], amount: e[1].length })));
 }));
 
 
-userRoutes.get('/public/getUser/:id?', jwt({ credentialsRequired: false, secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+userRoutes.get('/public/getUser/:id?', JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user
@@ -274,12 +270,16 @@ userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
   res.send(await UserModel.findAll({ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] }));
 }));
 
+userRoutes.get('/getUser', JwtMiddleware(),asyncHandler(async (req, res) => {
+  res.send(await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] }));
+}));
+
 userRoutes.get('/public/getImages/:id?', asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.params.id)
   //@ts-expect-error
   res.send(await user?.getPictures());
 }));
-userRoutes.get('/getVideos', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+userRoutes.get('/getVideos', JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
   //@ts-expect-error
   res.send(await user?.getVideos());
@@ -297,8 +297,7 @@ userRoutes.delete('/deleteImage', validateParams(checkSchema({
     },
     trim: true
   },
-})), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
-  //@ts-expect-error
+})), JwtMiddleware(), asyncHandler(async (req, res) => {
   const picture = await PictureModel.findOne({ where: { id: req.body.imageId, "UserId": req.user.id } })
   if (!picture) throw new ApiError("Picture not found")
   await picture.destroy()
@@ -316,14 +315,14 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
       negated: true
     },
   },
-})), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+})), JwtMiddleware(), asyncHandler(async (req, res) => {
   const picture = await VideoModel.findOne({ where: { id: req.body.videoId, UserId: req.user.id }})
   if (!picture) throw new ApiError("Picture not found")
   await picture.destroy()
   res.send({ success: true });
 }));
 
-userRoutes.post('/addPicture', upload.single("picture"), jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), asyncHandler(async (req, res) => {
+userRoutes.post('/addPicture', upload.single("picture"), JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
   const picture = await PictureModel.create({ price: req.body.price || null, imageName: req.file.path, isFree: req.body.isFree == "1" })
   //@ts-expect-error

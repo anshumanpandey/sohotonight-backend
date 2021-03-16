@@ -1,6 +1,3 @@
-import sequelize from "../utils/DB";
-
-import { DataTypes, Model, Optional } from "sequelize";
 
 export interface TwilioSmsWebhookBody {
   ToCountry:     string;
@@ -35,54 +32,57 @@ export enum SMS_SEND_STATUS {
   FAILED_TO_SEND = "FAILED_TO_SEND",
 }
 
-interface SmsAttributes {
-  id: string,
-  body: string,
-  toNumber: string,
-  fromNumber: string,
-  direction: SMS_DIRECTION,
-  status: SMS_SEND_STATUS,
-  fail_reason?: string,
-  twilio_sid?: string,
+
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript'
+
+@Table
+export default class SmsModel extends Model {
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: false
+  })
+  body: string;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: false
+  })
+  toNumber: string;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: false
+  })
+  fromNumber: string;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: false
+  })
+  direction: string;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: false
+  })
+  status: string;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: true
+  })
+  fail_reason: string | null;
+
+  @Column({
+    type: DataType.STRING(2000),
+    allowNull: true
+  })
+  twilio_sid: string | null;
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
-
-interface SmsCreationAttributes extends Optional<SmsAttributes, "id"> { }
-
-interface SmsInstance extends Model<SmsAttributes, SmsCreationAttributes>, SmsAttributes { }
-
-export const SmsModel = sequelize.define<SmsInstance>("Sms", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  body: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  toNumber: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  fromNumber: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  direction: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  status: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  fail_reason: {
-    type: DataTypes.STRING(2000),
-    allowNull: true
-  },
-  twilio_sid: {
-    type: DataTypes.STRING(2000),
-    allowNull: true
-  },
-})

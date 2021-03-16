@@ -1,8 +1,6 @@
 import express from 'express';
 import asyncHandler from "express-async-handler"
-import { AppConfig } from '../models/appConfig.model';
-import { ApiError } from '../utils/ApiError';
-import { generateVideoCallToken, responseCall, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
+import AppConfig from '../models/appConfig.model';
 
 export const appConfigsRoutes = express();
 

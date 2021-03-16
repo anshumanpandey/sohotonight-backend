@@ -2,9 +2,8 @@ import express from 'express';
 import asyncHandler from "express-async-handler"
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
-import { ChatMessage } from '../models/chatMessage.model';
-var jwt = require('express-jwt');
-import { UserModel } from '../models/user.model';
+import ChatMessage from '../models/chatMessage.model';
+import UserModel from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import { forwardSms, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
 

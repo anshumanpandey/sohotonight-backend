@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "target": "es6",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
     "module": "commonjs",
     "outDir": "./dist",
     "strict": true,

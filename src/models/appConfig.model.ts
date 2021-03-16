@@ -1,26 +1,14 @@
-import sequelize from "../utils/DB";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript'
 
-import { DataTypes, Model, Optional } from "sequelize";
+@Table
+export default class AppConfig extends Model<AppConfig> {
 
+  @Column(DataType.FLOAT(2, 2))
+  pricePerToken: number
 
-interface AppConfigAttributes {
-  id: string,
-  pricePerToken: number,
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
-
-interface AppConfigCreationAttributes extends Optional<AppConfigAttributes, "id"> { }
-
-interface AppConfigInstance extends Model<AppConfigAttributes, AppConfigCreationAttributes>, AppConfigAttributes { }
-
-export const AppConfig = sequelize.define<AppConfigInstance>("AppConfig", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  pricePerToken: {
-    type: DataTypes.FLOAT(2, 2),
-    defaultValue: 1
-  },
-})

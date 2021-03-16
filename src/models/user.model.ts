@@ -1,11 +1,10 @@
-import sequelize from "../utils/DB";
-
-import { DataTypes, Model, Optional } from "sequelize";
-import { PictureModel } from "./picture.model";
-import { VideoModel } from "./video.model";
-import { PostModel } from "./post.model";
-import { ServiceModel } from "./services.model";
-import { PaymentModel } from "./payment.model";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, HasMany, BelongsToMany } from 'sequelize-typescript'
+import PictureModel from "./picture.model";
+import VideoModel from "./video.model";
+import PostModel from "./post.model";
+import ServiceModel from "./services.model";
+import PaymentModel from "./payment.model";
+import UserServiceModel from './userService.model';
 
 export enum USER_ROLE_ENUM {
   SUPER_ADMIN = "Super_admin",
@@ -65,176 +64,260 @@ interface UserAttributes {
   authenticationProfilePicIsAuthenticated: boolean
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
-
-export interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes { }
-
 export const RoleKeys = Object.values(USER_ROLE_ENUM).filter(k => !Number.isInteger(k)) as string[]
 
-export const UserModel = sequelize.define<UserInstance>("User", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  nickname: {
-    type: DataTypes.STRING,
+
+@Table
+export default class UserModel extends Model<UserModel> {
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  firstName: {
-    type: DataTypes.STRING,
+  })
+  nickname: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  lastName: {
-    type: DataTypes.STRING,
+  })
+  firstName: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  password: {
-    type: DataTypes.STRING,
+  })
+  lastName: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false
-  },
-  emailAddress: {
-    type: DataTypes.STRING,
+  })
+  password: string
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false
-  },
-  phoneNumber: {
-    type: DataTypes.STRING,
+  })
+  emailAddress: string
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  callNumber: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: ""
-  },
-  railStation: {
-    type: DataTypes.STRING,
+  })
+  phoneNumber: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  town: {
-    type: DataTypes.STRING,
+  })
+  callNumber: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  aboutYouSummary: {
-    type: DataTypes.STRING,
+  })
+  railStation: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  aboutYouDetail: {
-    type: DataTypes.STRING(2000),
+  })
+  town: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  orientation: {
-    type: DataTypes.STRING,
+  })
+  aboutYouSummary: string | null
+
+  @Column({
+    type: DataType.STRING(2000),
     allowNull: true,
     defaultValue: null
-  },
-  gender: {
-    type: DataTypes.STRING,
+  })
+  aboutYouDetail: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  postCode: {
-    type: DataTypes.STRING,
+  })
+  orientation: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
     defaultValue: null
-  },
-  dayOfBirth: {
-    type: DataTypes.STRING,
+  })
+  gender: string | null
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null
+  })
+  postCode: string | null
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false
-  },
-  monthOfBirth: {
-    type: DataTypes.STRING,
+  })
+  dayOfBirth: string
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false
-  },
-  yearOfBirth: {
-    type: DataTypes.STRING,
+  })
+  monthOfBirth: string
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false
-  },
-  country: {
-    type: DataTypes.STRING,
+  })
+  yearOfBirth: string
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
     defaultValue: "United Kingdom",
-  },
-  tokensBalance: {
-    type: DataTypes.INTEGER,
+  })
+  country: string
+
+  @Column({
+    type: DataType.INTEGER,
     defaultValue: 0,
-  },
-  inches: {
-    type: DataTypes.INTEGER,
+  })
+  tokensBalance: number
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null
+  })
+  county: string | null
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null
+  })
+  profilePic: string | null
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null
+  })
+  authenticationProfilePic: string | null
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null
+  })
+  bannerImage: string | null
+  
+  @Column({
+    type: DataType.INTEGER,
     defaultValue: 0,
-  },
-  feet: {
-    type: DataTypes.INTEGER,
+  })
+  inches: number
+
+  @Column({
+    type: DataType.INTEGER,
     defaultValue: 0,
-  },
-  county: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: null
-  },
-  isLogged: {
-    type: DataTypes.BOOLEAN,
+  })
+  feet: number
+  
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  escortServices: {
-    type: DataTypes.BOOLEAN,
+  })
+  isLogged: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  allowSocialMediaMarketing: {
-    type: DataTypes.BOOLEAN,
+  })
+  escortServices: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  phoneChat: {
-    type: DataTypes.BOOLEAN,
+  })
+  allowSocialMediaMarketing: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  webcamWork: {
-    type: DataTypes.BOOLEAN,
+  })
+  phoneChat: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  contentProducer: {
-    type: DataTypes.BOOLEAN,
+  })
+  webcamWork: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  recievePromotions: {
-    type: DataTypes.BOOLEAN,
+  })
+  contentProducer: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  profilePic: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: null
-  },
-  authenticationProfilePic: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: null
-  },
-  bannerImage: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: null
-  },
-  isTrans: {
-    type: DataTypes.BOOLEAN,
+  })
+  recievePromotions: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  hasAdultContentCertification: {
-    type: DataTypes.BOOLEAN,
+  })
+  isTrans: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-  authenticationProfilePicIsAuthenticated: {
-    type: DataTypes.BOOLEAN,
+  })
+  hasAdultContentCertification: boolean
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false,
-  },
-})
+  })
+  authenticationProfilePicIsAuthenticated: boolean
+
+  @HasMany(() => PostModel)
+  post: PostModel
+
+  @HasMany(() => VideoModel)
+  videos: VideoModel
+
+  @HasMany(() => PictureModel)
+  pictures: PictureModel[]
+
+  @HasMany(() => PaymentModel)
+  payments: PaymentModel[]
+
+  @BelongsToMany(() => ServiceModel, () => UserServiceModel)
+  services: ServiceModel
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
+}
 
 //@ts-expect-error
 export const clearUrlFromAsset = function(user) {
@@ -264,18 +347,3 @@ export const clearUrlFromAsset = function(user) {
 
   return u
 };
-
-UserModel.hasMany(PictureModel);
-PictureModel.belongsTo(UserModel);
-
-UserModel.hasMany(VideoModel);
-VideoModel.belongsTo(UserModel);
-
-UserModel.hasMany(PostModel);
-PostModel.belongsTo(UserModel);
-
-UserModel.hasMany(PaymentModel);
-PaymentModel.belongsTo(UserModel);
-
-UserModel.belongsToMany(ServiceModel, { through: "User_Services" });
-ServiceModel.belongsToMany(UserModel, { through: "User_Services" });

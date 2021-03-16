@@ -1,25 +1,22 @@
-import sequelize from "../utils/DB";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, BelongsToMany } from 'sequelize-typescript'
+import UserModel from './user.model';
+import UserServiceModel from './userService.model';
 
-import { DataTypes, Model, Optional } from "sequelize";
+@Table
+export default class ServiceModel extends Model {
 
-interface ServiceAttributes {
-  id: string,
-  name: string,
-}
-
-interface serviceCreationAttributes extends Optional<ServiceAttributes, "id"> { }
-
-interface ServiceInstance extends Model<ServiceAttributes, serviceCreationAttributes>, ServiceAttributes { }
-
-export const ServiceModel = sequelize.define<ServiceInstance>("Service", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  name: {
-    type: DataTypes.STRING(),
+  @Column({
+    type: DataType.STRING(),
     allowNull: false
-  },
-})
+  })
+  name: string
+
+  @BelongsToMany(() => UserModel, () => UserServiceModel)
+  services: ServiceModel
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
+}

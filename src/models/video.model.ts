@@ -1,40 +1,36 @@
-import sequelize from "../utils/DB";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, BelongsTo } from 'sequelize-typescript'
+import UserModel from './user.model'
 
-import { DataTypes, Model, Optional } from "sequelize";
+@Table
+export default class VideoModel extends Model {
 
-interface UserAttributes {
-  id: string,
-  videoUrl: string,
-  price?: number,
-  isFree?: boolean,
-  UserId: string
-}
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: false,
+  })
+  videoUrl: number
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
-
-interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes { }
-
-export const VideoModel = sequelize.define<UserInstance>("Video", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  videoUrl: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  price: {
-    type: DataTypes.FLOAT({ length: 10, decimals: 2 }),
+  @Column({
+    type: DataType.FLOAT({ length: 10, decimals: 2 }),
     allowNull: true,
     defaultValue: null
-  },
-  isFree: {
-    type: DataTypes.BOOLEAN,
+  })
+  price: number | null
+
+  @Column({
+    type: DataType.BOOLEAN,
     defaultValue: false
-  },
-  UserId: {
-    type: DataTypes.STRING,
-  },
-})
+  })
+  isFree: number
+
+  @ForeignKey(() => UserModel)
+  userId: string
+  @BelongsTo(() => UserModel)
+  user: UserModel
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
+}

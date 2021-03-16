@@ -4,7 +4,7 @@ export const TWILIO_INTERNAL_NUM = "+12564748382"
 
 import { Twilio, twiml } from "twilio"
 import AccessToken, { VideoGrant, VoiceGrant } from "twilio/lib/jwt/AccessToken";
-import { SmsModel, SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
+import SmsModel, { SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
 const twilioClient = new Twilio(accountSid || "", authToken || "");
 
 type SmsParams = { body: string, toPhone: string, from?: string }

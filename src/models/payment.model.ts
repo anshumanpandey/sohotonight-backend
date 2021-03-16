@@ -1,25 +1,24 @@
-import sequelize from "../utils/DB";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, BelongsTo } from 'sequelize-typescript'
+import UserModel from './user.model';
 
-import { DataTypes, Model, Optional } from "sequelize";
+@Table
+export default class PaymentModel extends Model {
 
-interface UserAttributes {
-  id: string,
-  transactionId: string,
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: false,
+  })
+  transactionId: number
+
+
+  @ForeignKey(() => UserModel)
+  userId: string
+  @BelongsTo(() => UserModel)
+  user: UserModel
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
-
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
-
-interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes { }
-
-export const PaymentModel = sequelize.define<UserInstance>("Payment", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  transactionId: {
-    type: DataTypes.STRING(500),
-    allowNull: false
-  },
-})

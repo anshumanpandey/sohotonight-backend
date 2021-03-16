@@ -1,36 +1,25 @@
-import sequelize from "../utils/DB";
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, BelongsTo, ForeignKey } from 'sequelize-typescript'
+import UserModel from './user.model';
 
-import { DataTypes, Model, Optional } from "sequelize";
+@Table
+export default class ChatMessageModel extends Model {
 
+  @Column(DataType.STRING(2000))
+  body: string
 
-interface ChatMessahettributes {
-  id: string,
-  body: string,
-  fromUser: string,
-  toUserId: string,
+  @ForeignKey(() => UserModel)
+  fromUserId: string
+  @BelongsTo(() => UserModel)
+  fromUser: UserModel
+
+  @ForeignKey(() => UserModel)
+  toUserId: string
+  @BelongsTo(() => UserModel)
+  toUser: UserModel
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
-
-interface ChatMessageCreationAttributes extends Optional<ChatMessahettributes, "id"> { }
-
-interface ChatMessageInstance extends Model<ChatMessahettributes, ChatMessageCreationAttributes>, ChatMessahettributes { }
-
-export const ChatMessage = sequelize.define<ChatMessageInstance>("ChatMessage", {
-  // Model attributes are defined here
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-  },
-  body: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  fromUser: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-  toUserId: {
-    type: DataTypes.STRING(2000),
-    allowNull: false
-  },
-})

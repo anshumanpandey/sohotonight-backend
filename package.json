@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "ts-node ./src",
+    "start": "TS_NODE_FILES=1 TS_NODE_PROJECT='./tsconfig.json' ts-node ./src",
     "sendsms": "ts-node ./src/utils/TwilioClient.ts"
   },
   "keywords": [],

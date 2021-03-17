@@ -2,7 +2,7 @@ import { Sequelize, SequelizeOptions } from "sequelize-typescript"
 import path from "path";
 
 let SequalizeConfig: SequelizeOptions = {
-  models: [ path.join(__dirname, '..', 'models', '**/*.model.ts')],
+  models: [ path.join(__dirname, '..', 'models')],
 }
 
 if (process.env.DB_DIALECT) {

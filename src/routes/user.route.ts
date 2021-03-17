@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import UserModel, {  clearUrlFromAsset } from '../models/user.model';
+import UserModel, {  clearUrlFromAsset, ALLOWED_ROLE, USER_ROLE_ENUM } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -15,6 +15,7 @@ import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
 import ServiceModel from '../models/services.model';
 import { JwtMiddleware } from '../utils/JwtMiddleware';
+import { RoleCheck } from '../middlewares/RoleCheck';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -167,6 +168,23 @@ userRoutes.post('/register', validateParams(checkSchema({
     },
     trim: true
   },
+  role: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    custom: {
+      options: (val) => {
+        return ALLOWED_ROLE.map(r => r.toLowerCase()).includes(val.toLowerCase())
+      },
+      errorMessage: 'Invalid role'
+    },
+    trim: true
+  },
 })), asyncHandler(async (req, res) => {
   const { password, confirmPassword, emailAddress, nickname, ...fields } = req.body;
 
@@ -192,7 +210,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), JwtMiddleware(), asyncHandler(async (req, res) => {
+userRoutes.put('/update', RoleCheck(USER_ROLE_ENUM.MODEL), profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), JwtMiddleware(), asyncHandler(async (req, res) => {
   const fieldsToUpdate = {
     ...req.body,
     isTrans: req.body.isTrans ? req.body.isTrans === 'true' : undefined,

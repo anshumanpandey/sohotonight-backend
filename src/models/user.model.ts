@@ -10,16 +10,13 @@ import VideoChatModel from './videoChat.model';
 import { WhereAttributeHash } from 'sequelize/types';
 
 export enum USER_ROLE_ENUM {
-  SUPER_ADMIN = "Super_admin",
-  ESCORT = "Escort",
-  CAM = "Cam",
-  MASSAGE = "Massage",
-  CLIENT = "Client"
+  MODEL = "MODEL",
+  USER = "USER"
 }
 
 export const ALLOWED_ROLE = [
-  USER_ROLE_ENUM.CAM,
-  USER_ROLE_ENUM.CLIENT,
+  USER_ROLE_ENUM.MODEL,
+  USER_ROLE_ENUM.USER,
 ]
 
 interface UserAttributes {
@@ -227,6 +224,13 @@ export default class UserModel extends Model {
     defaultValue: null
   })
   bannerImage: string | null
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: USER_ROLE_ENUM.MODEL
+  })
+  role: string
   
   @Column({
     type: DataType.INTEGER,

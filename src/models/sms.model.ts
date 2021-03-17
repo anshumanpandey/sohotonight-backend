@@ -79,10 +79,4 @@ export default class SmsModel extends Model {
     allowNull: true
   })
   twilio_sid: string | null;
-
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
 }

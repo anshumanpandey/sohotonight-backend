@@ -28,9 +28,4 @@ export default class VideoModel extends Model {
   @BelongsTo(() => UserModel)
   user: UserModel
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
 }

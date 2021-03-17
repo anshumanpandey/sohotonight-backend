@@ -5,6 +5,9 @@ import PostModel from "./post.model";
 import ServiceModel from "./services.model";
 import PaymentModel from "./payment.model";
 import UserServiceModel from './userService.model';
+import VideoChatToUser from './videoChatToUser.model';
+import VideoChatModel from './videoChat.model';
+import { WhereAttributeHash } from 'sequelize/types';
 
 export enum USER_ROLE_ENUM {
   SUPER_ADMIN = "Super_admin",
@@ -68,7 +71,7 @@ export const RoleKeys = Object.values(USER_ROLE_ENUM).filter(k => !Number.isInte
 
 
 @Table
-export default class UserModel extends Model<UserModel> {
+export default class UserModel extends Model {
 
   @Column({
     type: DataType.STRING,
@@ -301,10 +304,10 @@ export default class UserModel extends Model<UserModel> {
   post: PostModel
 
   @HasMany(() => VideoModel)
-  videos: VideoModel
+  Videos: VideoModel
 
   @HasMany(() => PictureModel)
-  pictures: PictureModel[]
+  Pictures: PictureModel[]
 
   @HasMany(() => PaymentModel)
   payments: PaymentModel[]
@@ -312,11 +315,8 @@ export default class UserModel extends Model<UserModel> {
   @BelongsToMany(() => ServiceModel, () => UserServiceModel)
   services: ServiceModel
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
+  @BelongsToMany(() => VideoChatModel, () => VideoChatToUser)
+  videoChats: VideoChatModel[]
 }
 
 //@ts-expect-error
@@ -331,7 +331,7 @@ export const clearUrlFromAsset = function(user) {
   })
 
   //@ts-expect-error
-  const filteredPictures = user?.Pictures.map(vid => {
+  const filteredPictures = user?.Pictures?.map(vid => {
     const v = vid.toJSON()
     if (v.isFree == false) {
       const { imageName, ...video} = v
@@ -347,3 +347,16 @@ export const clearUrlFromAsset = function(user) {
 
   return u
 };
+
+export const discountUserToken = ({ user, amount = 1 }: { user: UserModel, amount?: number}) => {
+  return user.update({ tokensBalance: user.tokensBalance - amount })
+}
+
+export const getUsersBy = (by: WhereAttributeHash) => {
+  return UserModel.findAll({ where: by })
+}
+
+export const publicUserSerializer = (u: UserModel) => {
+  const { password, ...userData} = u
+  return userData
+}

@@ -256,7 +256,7 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 }));
 
 
-userRoutes.get('/public/getUser/:id?', JwtMiddleware(), asyncHandler(async (req, res) => {
+userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user

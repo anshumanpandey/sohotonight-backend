@@ -14,9 +14,4 @@ export default class ServiceModel extends Model {
   @BelongsToMany(() => UserModel, () => UserServiceModel)
   services: ServiceModel
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
 }

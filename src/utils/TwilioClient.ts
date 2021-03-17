@@ -1,11 +1,16 @@
+import { Twilio, twiml } from "twilio"
+import { v4 as uuidv4 } from 'uuid';
+import AccessToken, { VideoGrant, VoiceGrant } from "twilio/lib/jwt/AccessToken";
+import SmsModel, { SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
+import VideoChatModel, { createVideoChat } from "../models/videoChat.model";
+import UserModel from "../models/user.model";
+import { sendInvitationTo } from "../models/videochatInvitation.model";
+
 const accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Account SID from www.twilio.com/console
 const authToken = process.env.TWILIO_ACCOUNT_TOKEN;   // Your Auth Token from www.twilio.com/console
 export const TWILIO_INTERNAL_NUM = "+12564748382"
 
-import { Twilio, twiml } from "twilio"
-import AccessToken, { VideoGrant, VoiceGrant } from "twilio/lib/jwt/AccessToken";
-import SmsModel, { SMS_DIRECTION, SMS_SEND_STATUS } from "../models/sms.model";
-const twilioClient = new Twilio(accountSid || "", authToken || "");
+export const twilioClient = new Twilio(accountSid || "", authToken || "");
 
 type SmsParams = { body: string, toPhone: string, from?: string }
 export const forwardSms = async ({ body, toPhone, from = TWILIO_INTERNAL_NUM }: SmsParams) => {
@@ -89,4 +94,25 @@ export const generateVideoCallToken = ({ identity, roomName }: { identity: strin
 
     // Serialize the token as a JWT
     return accessToken
+}
+
+export const createVideoRoom = async ({ identity, user, toUser }: { identity: string, user: UserModel, toUser: UserModel }) => {
+
+    const roomName = uuidv4();
+    const videoRoom = await twilioClient.video.rooms.create({
+        maxParticipants: 2,
+        uniqueName: roomName
+    })
+
+    const v = await createVideoChat({ twilioRoomSid: videoRoom.sid, createdBy: user, roomName })
+    const invitation = await sendInvitationTo({ videoChat: v, toUser: toUser })
+    v.invitationId = invitation.id
+    await v.save()
+
+    const chatToken = await generateVideoCallToken({ identity, roomName })
+
+    return {
+        videoChat: v,
+        token: chatToken
+    }
 }

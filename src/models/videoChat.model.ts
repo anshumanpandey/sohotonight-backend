@@ -1,24 +1,10 @@
 import { Table, Column, Model, DataType, BelongsTo, BelongsToMany, ForeignKey, HasMany } from 'sequelize-typescript'
 import UserModel from './user.model'
-import VideoChatToUser from './videoChatToUser.model';
 import { ApiError } from '../utils/ApiError';
-import VideoChatInvitation, { INVITATION_RESPONSE_ENUM } from './videochatInvitation.model';
-import { twilioClient } from '../utils/TwilioClient';
+import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo } from './invitation.model';
 
 @Table
 export default class VideoChatModel extends Model {
-
-  @Column({
-    type: DataType.STRING(2000),
-    allowNull: false
-  })
-  twilioRoomSid: string;
-
-  @Column({
-    type: DataType.STRING(2000),
-    allowNull: false
-  })
-  roomName: string;
 
   @Column({
     type: DataType.FLOAT(8, 8),
@@ -31,13 +17,13 @@ export default class VideoChatModel extends Model {
     type: DataType.DATE,
     allowNull: true
   })
-  roomStartDatetime: Date | null;
+  startDatetime: Date | null;
 
   @Column({
     type: DataType.DATE,
     allowNull: true
   })
-  roomEndDatetime: Date | null;
+  endDatetime: Date | null;
 
   @ForeignKey(() => UserModel)
   @Column
@@ -55,35 +41,35 @@ export default class VideoChatModel extends Model {
   invitations: VideoChatInvitation
 }
 
-export const createVideoChat = async (p: { twilioRoomSid: string, createdBy: UserModel, roomName: string }) => {
-  const v = await VideoChatModel.create({ twilioRoomSid: p.twilioRoomSid, createdById: p.createdBy.id, roomName: p.roomName })
+export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUser: UserModel }) => {
 
-  /*if (p.users && Array.isArray(p.users)) {
-    const data = p.users.map(p => ({ userId: p.id, videoChatId: v.id }))
-    await VideoChatToUser.bulkCreate(data)
-  }*/
+  //TODO: handle start date on connection
+  const v = await VideoChatModel.create({ createdById: user.id })
 
   const justCreated = await VideoChatModel.findByPk(v.id, { include: [{ model: UserModel }] })
   if (!justCreated) throw new ApiError("Could not create the room")
 
-  return justCreated
+  const invitation = await sendVideoInvitationTo({ videoChat: v, toUser: toUser })
+  v.invitationId = invitation.id
+  await v.save()
+
+  return invitation
 }
 
 export const getOngoingVideoChats = async () => {
   const onGoinChats = await VideoChatModel
     .findAll({
-      where: { roomEndDatetime: null },
+      where: { endDatetime: null },
       include: [
         { model: VideoChatInvitation, where: { responseFromUser: INVITATION_RESPONSE_ENUM.ACCEPTED }, required: true },
         { model: UserModel, required: true }
       ]
     })
 
-    return onGoinChats
+  return onGoinChats
 }
 
 export const endVideoChat = async ({ videoChat }: { videoChat: VideoChatModel }) => {
-  await twilioClient.video.rooms.get(videoChat.twilioRoomSid).update({status: 'completed'})
-  videoChat.roomEndDatetime = new Date()
+  videoChat.endDatetime = new Date()
   await videoChat.save()
 }

@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, HasMany, BelongsToMany } from 'sequelize-typescript'
+import { Table, Column, Model, DataType, HasMany, BelongsToMany } from 'sequelize-typescript'
+import { Op } from "sequelize"
 import PictureModel from "./picture.model";
 import VideoModel from "./video.model";
 import PostModel from "./post.model";
@@ -363,4 +364,8 @@ export const getUsersBy = (by: WhereAttributeHash) => {
 export const publicUserSerializer = (u: UserModel) => {
   const { password, ...userData} = u
   return userData
+}
+
+export const getModels = () => {
+  return UserModel.findAll({ where: { [Op.not]: { role: USER_ROLE_ENUM.USER }},attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] })
 }

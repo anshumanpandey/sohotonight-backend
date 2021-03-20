@@ -1,20 +1,26 @@
 import express from 'express';
 import asyncHandler from "express-async-handler"
 import { ApiError } from '../utils/ApiError';
-import { generateVideoCallToken, responseCall, TWILIO_INTERNAL_NUM, createVideoRoom } from '../utils/TwilioClient';
+import { generateVideoCallToken, responseCall, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
 import { JwtMiddleware } from '../utils/JwtMiddleware';
 import UserModel, { discountUserToken } from '../models/user.model';
-import { getOngoingVideoChats, endVideoChat } from '../models/videoChat.model';
+import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
-import { getInvitationsByUserInvitatedId, videoChatInvitationSerializer, declineInvitation, acceptInvitation } from '../models/videochatInvitation.model';
+import { getVideoInvitationsByUserInvitatedId, invitationSerializer, declineInvitation, acceptInvitation, getAcceptedInvitations } from '../models/invitation.model';
 
 export const videoRoutes = express();
 
 videoRoutes.get('/invitations', JwtMiddleware(), asyncHandler(async (req, res) => {
 
-  const invitations = await getInvitationsByUserInvitatedId({ userId: req.user.id })
-  res.send(invitations.map(videoChatInvitationSerializer));
+  const invitations = await getVideoInvitationsByUserInvitatedId({ userId: req.user.id })
+  res.send(invitations.map(invitationSerializer));
+}));
+
+videoRoutes.get('/acceptedInvitations', JwtMiddleware(), asyncHandler(async (req, res) => {
+
+  const invitations = await getAcceptedInvitations({ userId: req.user.id })
+  res.send(invitations.map(invitationSerializer));
 }));
 
 videoRoutes.post('/invitation/reject', JwtMiddleware(), asyncHandler(async (req, res) => {
@@ -25,8 +31,8 @@ videoRoutes.post('/invitation/reject', JwtMiddleware(), asyncHandler(async (req,
 
 videoRoutes.post('/invitation/accept', JwtMiddleware(), asyncHandler(async (req, res) => {
 
-  await acceptInvitation({ invitationId: req.body.invitationId })
-  res.send({ success: true })
+  const i = await acceptInvitation({ invitationId: req.body.invitationId })
+  res.send(i)
 }));
 
 
@@ -50,18 +56,7 @@ videoRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({
       negated: true
     },
     trim: true
-  },
-  identity: {
-    in: ['body'],
-    exists: {
-      errorMessage: 'Missing field'
-    },
-    isEmpty: {
-      errorMessage: 'Missing field',
-      negated: true
-    },
-    trim: true
-  },
+  }
 })), asyncHandler(async (req, res) => {
   const [u, toUser] = await Promise.all([
     UserModel.findByPk(req.user.id),
@@ -72,11 +67,10 @@ videoRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({
   if (!toUser) throw new ApiError("User to call not found")
   if (u.id == toUser.id) throw new ApiError("Cannot create call to itself")
 
-  const p = { identity: req.body.identity, user: u, toUser }
-  const room = await createVideoRoom(p)
-  if (!room.token) throw new ApiError("Could not generate token")
+  const p = { user: u, toUser }
+  const invitation = await createVideoRoom(p)
 
-  res.send({ token: room.token.toJwt(), ...room.videoChat.toJSON() });
+  res.send(invitation);
 }));
 
 
@@ -91,6 +85,7 @@ videoRoutes.post('/discount', JwtMiddleware(), asyncHandler(async (req, res) => 
 
   if (u.tokensBalance == 0) {
     await endVideoChat({ videoChat: foundChat })
+    return 
   }
 
   await discountUserToken({ user: u })

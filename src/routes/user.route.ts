@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import UserModel, {  clearUrlFromAsset, ALLOWED_ROLE, USER_ROLE_ENUM } from '../models/user.model';
+import UserModel, {  clearUrlFromAsset, ALLOWED_ROLE, USER_ROLE_ENUM, getModels } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -198,7 +198,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
-  const userData = { password: hashedPass, nickname,emailAddress, ...fields }
+  const userData = { password: hashedPass, nickname,emailAddress, ...fields, role: USER_ROLE_ENUM[fields.role.toUpperCase() as USER_ROLE_ENUM] }
   /*const callNumberObj = await createIncomingPhoneNumber()
   userData.callNumber = callNumberObj.phoneNumber*/
   const user = await UserModel.create(userData, { include: [{ model: ServiceModel }]})
@@ -275,7 +275,7 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 
 
 userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
-  const user = await UserModel.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
+  const user = await UserModel.findOne({ where: { id: req.params.id, role: USER_ROLE_ENUM.MODEL },attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user
   if (!req.user || req.params.id != req.user.id){
@@ -285,7 +285,7 @@ userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
-  res.send(await UserModel.findAll({ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] }));
+  res.send(await getModels());
 }));
 
 userRoutes.get('/getUser', JwtMiddleware(),asyncHandler(async (req, res) => {

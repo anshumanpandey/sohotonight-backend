@@ -9,6 +9,7 @@ import UserServiceModel from './userService.model';
 import VideoChatToUser from './videoChatToUser.model';
 import VideoChatModel from './videoChat.model';
 import { WhereAttributeHash } from 'sequelize/types';
+import { Logger } from '../utils/Logger';
 
 export enum USER_ROLE_ENUM {
   MODEL = "MODEL",
@@ -354,7 +355,9 @@ export const clearUrlFromAsset = function(user) {
 };
 
 export const discountUserToken = ({ user, amount = 1 }: { user: UserModel, amount?: number}) => {
-  return user.update({ tokensBalance: user.tokensBalance - amount })
+  const tokenAmount = user.tokensBalance - amount
+  Logger.info(`Tokens ${tokenAmount} deducted for user ${user.id}`)
+  return user.update({ tokensBalance: tokenAmount })
 }
 
 export const getUsersBy = (by: WhereAttributeHash) => {
@@ -362,7 +365,7 @@ export const getUsersBy = (by: WhereAttributeHash) => {
 }
 
 export const publicUserSerializer = (u: UserModel) => {
-  const { password, ...userData} = u
+  const { password, ...userData} = u.toJSON() as any
   return userData
 }
 

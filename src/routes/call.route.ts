@@ -2,7 +2,7 @@ import express from 'express';
 import asyncHandler from "express-async-handler"
 import { ApiError } from '../utils/ApiError';
 import { generateVoiceCallToken, responseCall, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
-import { JwtMiddleware } from '../utils/JwtMiddleware';
+import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { validateParams } from '../middlewares';
 import { checkSchema } from 'express-validator';
 import UserModel from '../models/user.model';

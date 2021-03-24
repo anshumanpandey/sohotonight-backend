@@ -7,7 +7,7 @@ import PaymentModel from '../models/payment.model';
 import UserModel from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import sequelize from '../utils/DB';
-import { JwtMiddleware } from '../utils/JwtMiddleware';
+import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 
 export const paymentRoutes = express();
 

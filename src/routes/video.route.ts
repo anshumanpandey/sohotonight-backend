@@ -2,7 +2,7 @@ import express from 'express';
 import asyncHandler from "express-async-handler"
 import { ApiError } from '../utils/ApiError';
 import { generateVideoCallToken, responseCall, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
-import { JwtMiddleware } from '../utils/JwtMiddleware';
+import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import UserModel, { discountUserToken } from '../models/user.model';
 import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
 import { checkSchema } from 'express-validator';
@@ -28,13 +28,6 @@ videoRoutes.post('/invitation/reject', JwtMiddleware(), asyncHandler(async (req,
   await declineInvitation({ invitationId: req.body.invitationId })
   res.send({ success: true })
 }));
-
-videoRoutes.post('/invitation/accept', JwtMiddleware(), asyncHandler(async (req, res) => {
-
-  const i = await acceptInvitation({ invitationId: req.body.invitationId })
-  res.send(i)
-}));
-
 
 videoRoutes.post('/generateVideoToken', JwtMiddleware(), asyncHandler(async (req, res) => {
 

@@ -1,7 +1,15 @@
-import { Table, Column, Model, DataType, BelongsTo, BelongsToMany, ForeignKey, HasMany } from 'sequelize-typescript'
-import UserModel from './user.model'
+import { Table, Column, Model, DataType, BelongsTo, BelongsToMany, ForeignKey, HasMany, HasOne } from 'sequelize-typescript'
+import UserModel, { publicUserSerializer } from './user.model'
 import { ApiError } from '../utils/ApiError';
-import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo } from './invitation.model';
+import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo, INVITATION_TYPE, invitationSerializer, getInvitationsBy } from './invitation.model';
+import { sendNotificatioToUserId } from '../socketApp';
+import { Logger } from '../utils/Logger';
+import { WhereAttributeHash, OrOperator } from 'sequelize/types';
+import { Op } from 'sequelize';
+
+export enum VIDEO_CHAT_EVENTS {
+  VIDEO_CHAT_ENDED = "VIDEO_CHAT_ENDED"
+}
 
 @Table
 export default class VideoChatModel extends Model {
@@ -37,8 +45,8 @@ export default class VideoChatModel extends Model {
   @ForeignKey(() => VideoChatInvitation)
   @Column
   invitationId: number
-  @HasMany(() => VideoChatInvitation)
-  invitations: VideoChatInvitation
+  @HasOne(() => VideoChatInvitation)
+  invitation: VideoChatInvitation
 }
 
 export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUser: UserModel }) => {
@@ -56,20 +64,39 @@ export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUse
   return invitation
 }
 
-export const getOngoingVideoChats = async () => {
+export const getOngoingVideoChats = async (p?: { relatedUser?: number }) => {
+  const where: WhereAttributeHash | OrOperator = { endDatetime: null }
+  
   const onGoinChats = await VideoChatModel
     .findAll({
-      where: { endDatetime: null },
+      where: where,
       include: [
         { model: VideoChatInvitation, where: { responseFromUser: INVITATION_RESPONSE_ENUM.ACCEPTED }, required: true },
         { model: UserModel, required: true }
       ]
     })
 
-  return onGoinChats
+  let result = onGoinChats
+  if (p && p.relatedUser) {
+    result = onGoinChats.filter(c => c.createdById == p.relatedUser || c.invitation.toUserId == p.relatedUser)
+  }
+  return result
 }
 
 export const endVideoChat = async ({ videoChat }: { videoChat: VideoChatModel }) => {
-  videoChat.endDatetime = new Date()
-  await videoChat.save()
+  Logger.info(`Ending video chat ${videoChat.id}`)
+  const endDatetime = new Date()
+  await VideoChatModel.update({ endDatetime }, { where: { id: videoChat.id }})
+  const [i] = await getInvitationsBy({ id: videoChat.invitationId })
+  sendNotificatioToUserId({ userId: videoChat.createdById, eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED, body: videoChat })
+  sendNotificatioToUserId({ userId: i.toUserId, eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED, body: videoChat })
+}
+
+export const videoChatSerializer = (v: VideoChatModel): any => {
+  const { createdBy, ...videoChat } = v.toJSON() as any
+
+  return {
+    ...videoChat,
+    createdBy: publicUserSerializer(v.createdBy)
+  }
 }

@@ -14,7 +14,7 @@ import PostModel from '../models/post.model';
 import GetMulterCloudnaryStorage from '../utils/GetMulterCloudnaryStorage';
 import { sendEmail } from '../utils/Mail';
 import ServiceModel from '../models/services.model';
-import { JwtMiddleware } from '../utils/JwtMiddleware';
+import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { RoleCheck } from '../middlewares/RoleCheck';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })

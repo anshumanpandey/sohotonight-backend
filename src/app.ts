@@ -9,6 +9,7 @@ const cors = require('cors')
 import * as https from "https"
 import * as http from "http"
 import { seedAppConfig } from './seed/SeedAppConfig';
+import { startSocketServer } from './socketApp';
 const fs = require('fs');
 
 const app = express();
@@ -61,20 +62,21 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 const bootstrap = () => {
     return sequelize.authenticate()
-    .then(() => sequelize.sync())
-    .then(() => seedAppConfig())
+        .then(() => sequelize.sync())
+        .then(() => seedAppConfig())
 }
 
 let httpsServer: null | https.Server = null
 
 if (process.env.HTTPS_ENABLED) {
-    const privateKey  = fs.readFileSync(__dirname + '/../privkey.key', 'utf8');
+    const privateKey = fs.readFileSync(__dirname + '/../privkey.key', 'utf8');
     const certificate = fs.readFileSync(__dirname + '/../cert.crt', 'utf8');
-    const credentials = {key: privateKey, cert: certificate};
+    const credentials = { key: privateKey, cert: certificate };
     httpsServer = https.createServer(credentials, app);
 }
 
 var httpServer = http.createServer(app);
+startSocketServer(httpServer)
 
 export {
     app,

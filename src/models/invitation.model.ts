@@ -1,10 +1,11 @@
 import { Table, Column, Model, ForeignKey, DataType, BelongsTo } from 'sequelize-typescript'
 import { v4 as uuidv4 } from 'uuid';
-import VideoChatModel from './videoChat.model';
+import VideoChatModel, { videoChatSerializer } from './videoChat.model';
 import UserModel, { publicUserSerializer } from './user.model';
 import { ApiError } from '../utils/ApiError';
 import VoiceCallModel from './voiceCall.model';
 import { WhereAttributeHash } from 'sequelize/types';
+import { sendNotificatioToUserId } from '../socketApp';
 
 export enum INVITATION_RESPONSE_ENUM {
   WAITING_RESPONSE = "WAITING_RESPONSE",
@@ -15,6 +16,12 @@ export enum INVITATION_RESPONSE_ENUM {
 export enum INVITATION_TYPE {
   VIDEO_CHAT = "VIDEO_CHAT",
   VOICE_CALL = "VOICE_CALL",
+}
+
+
+export enum INVITATION_EVENTS {
+  NEW_INVITATION = "NEW_INVITATION",
+  INVITATION_ACCEPTED = "INVITATION_ACCEPTED",
 }
 
 @Table
@@ -60,20 +67,32 @@ export default class InvitationModel extends Model {
   responseFromUser: string
 }
 
-const getInvitationsBy = (by: WhereAttributeHash<{ toUserId?: string, invitationType: INVITATION_TYPE, responseFromUser?: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE,createdById: string }>) => {
-  const where: WhereAttributeHash = { invitationType: by.invitationType }
+type InvitationByParams = { id?: string,toUserId?: string, invitationType: INVITATION_TYPE, responseFromUser?: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, createdById: string }
+export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams>) => {
+  const where: WhereAttributeHash = {}
+  if (by.invitationType) {
+    where.invitationType = by.invitationType
+  }
   if (by.toUserId) {
     where.toUserId = by.toUserId
+  }
+  if (by.id) {
+    where.id = by.id
   }
   const chatWhere: WhereAttributeHash = {}
   if (by.createdById) {
     chatWhere.createdById = by.createdById
   }
-  return InvitationModel
+  const invitations = await InvitationModel
     .findAll({
       where,
       include: [{ model: VideoChatModel, where: chatWhere, required: true, include: [{ model: UserModel, required: true }] }]
     })
+
+  return invitations.map(i => {
+    i.videoChat.invitation = i
+    return i
+  })
 }
 
 export const getVideoInvitationsByUserInvitatedId = async ({ userId }: { userId: string }) => {
@@ -89,24 +108,31 @@ export const getVoiceInvitationsByUserInvitatedId = async ({ userId }: { userId:
   return getInvitationsBy({ toUserId: userId, invitationType: INVITATION_TYPE.VOICE_CALL})
 }
 
-export const sendVideoInvitationTo = ({ toUser, videoChat }: { toUser: UserModel, videoChat: VideoChatModel }) => {
+export const sendVideoInvitationTo = async ({ toUser, videoChat }: { toUser: UserModel, videoChat: VideoChatModel }) => {
   const senderUuid = uuidv4();
   const receiverUuid = uuidv4();
 
-  return InvitationModel.create({
+
+  const i = await InvitationModel.create({
     toUserId: toUser.id,
     videoChatId: videoChat.id,
     invitationType: INVITATION_TYPE.VIDEO_CHAT,
     senderUuid,
     receiverUuid
   })
+
+  const invitation = await getInvitationsBy({ id: i.id })
+
+  sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_INVITATION, body: invitationSerializer(invitation[0]) })
+  return i
 }
 
 export const acceptInvitation = async ({ invitationId }: { invitationId: string }) => {
-  const invitation = await InvitationModel.findByPk(invitationId)
+  const [invitation] = await getInvitationsBy({ id: invitationId })
   if (!invitation) throw new ApiError("Invitation not found")
 
   await invitation.update({ responseFromUser: INVITATION_RESPONSE_ENUM.ACCEPTED })
+  sendNotificatioToUserId({ userId: invitation.videoChat.createdById, eventName: INVITATION_EVENTS.INVITATION_ACCEPTED, body: invitationSerializer(invitation) })
 }
 
 export const declineInvitation = async ({ invitationId }: { invitationId: string }) => {
@@ -119,6 +145,7 @@ export const declineInvitation = async ({ invitationId }: { invitationId: string
 export const invitationSerializer = (i: InvitationModel) => {
   return {
     ...i.toJSON(),
-    userTo: publicUserSerializer(i.videoChat.createdBy)
+    userTo: publicUserSerializer(i.videoChat.createdBy),
+    videoChat: videoChatSerializer(i.videoChat)
   }
 }

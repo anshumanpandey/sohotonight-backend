@@ -8,11 +8,15 @@ import { onInvitationAccepted, discountForVideoChat, onChatEnd } from "./control
 import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.model"
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
+import VoiceCallModel, { VOICE_CALL_EVENTS } from "./models/voiceCall.model"
+import { discountForVoiceCall } from "./controllers/voiceCall.controller"
 
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
-    [INVITATION_EVENTS.NEW_INVITATION]: InvitationModel
-    [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel    
+    [INVITATION_EVENTS.NEW_VIDEO_INVITATION]: InvitationModel
+    [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel,
+    [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,
+    [VOICE_CALL_EVENTS.VOICE_CALL_ENDED]: VoiceCallModel
 }
 const connDictionary = new Map<string | number, socket.Socket<EmitEvents, DefaultEventsMap>>()
 
@@ -48,7 +52,10 @@ export const startSocketServer = (s: http.Server) => {
 
         client.on('ACCEPT_INVITATION', onInvitationAccepted);
         client.on('DISCOUNT_VIDEO_CHAT', (d) => discountForVideoChat({ ...d, user: client.decoded_token }));
+        client.on('VOICE_CALL_ENDED', (d) => discountForVoiceCall({ ...d, user: client.decoded_token }));
         client.on('END_VIDEO_CHAT', onChatEnd);
+
+        
         client.on('disconnect', () => {
             console.log("disconnected")
             getOngoingVideoChats({ relatedUser: client.decoded_token.id })

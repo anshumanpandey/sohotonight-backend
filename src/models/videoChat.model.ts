@@ -5,7 +5,6 @@ import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo, I
 import { sendNotificatioToUserId } from '../socketApp';
 import { Logger } from '../utils/Logger';
 import { WhereAttributeHash, OrOperator } from 'sequelize/types';
-import { Op } from 'sequelize';
 
 export enum VIDEO_CHAT_EVENTS {
   VIDEO_CHAT_ENDED = "VIDEO_CHAT_ENDED"
@@ -57,7 +56,7 @@ export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUse
   const justCreated = await VideoChatModel.findByPk(v.id, { include: [{ model: UserModel }] })
   if (!justCreated) throw new ApiError("Could not create the room")
 
-  const invitation = await sendVideoInvitationTo({ videoChat: v, toUser: toUser })
+  const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser })
   v.invitationId = invitation.id
   await v.save()
 

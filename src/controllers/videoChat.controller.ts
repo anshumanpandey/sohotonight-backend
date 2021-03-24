@@ -7,12 +7,12 @@ export const onInvitationAccepted = async (invitation: any) => {
     const i = await acceptInvitation({ invitationId: invitation.id })
 }
 
-export const discountForVideoChat = async ({ videoChatId, user }: { videoChatId: string, user: any }) => {
+export const discountForVideoChat = async ({ callId, user }: { callId: string, user: any }) => {
     const u = await UserModel.findByPk(user.id)
     if (!u) throw new ApiError("User not found")
 
     const currentVideoChats = await getOngoingVideoChats()
-    const foundChat = currentVideoChats.find(v => v.id == videoChatId)
+    const foundChat = currentVideoChats.find(v => v.id == callId)
     if (!foundChat) throw new ApiError("Video chat not found")
 
     if (u.tokensBalance == 0) {

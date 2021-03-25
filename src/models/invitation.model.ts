@@ -1,5 +1,6 @@
 import { Table, Column, Model, ForeignKey, DataType, BelongsTo } from 'sequelize-typescript'
 import { v4 as uuidv4 } from 'uuid';
+import { differenceInMinutes } from 'date-fns'
 import VideoChatModel, { videoChatSerializer } from './videoChat.model';
 import UserModel, { publicUserSerializer } from './user.model';
 import { ApiError } from '../utils/ApiError';
@@ -11,13 +12,13 @@ export enum INVITATION_RESPONSE_ENUM {
   WAITING_RESPONSE = "WAITING_RESPONSE",
   REJECTED = "REJECTED",
   ACCEPTED = "ACCEPTED",
+  EXPIRED = "EXPIRED",
 }
 
 export enum INVITATION_TYPE {
   VIDEO_CHAT = "VIDEO_CHAT",
   VOICE_CALL = "VOICE_CALL",
 }
-
 
 export enum INVITATION_EVENTS {
   NEW_VOICE_INVITATION = "NEW_VOICE_INVITATION",
@@ -65,7 +66,7 @@ export default class InvitationModel extends Model {
     type: DataType.STRING,
     defaultValue: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE
   })
-  responseFromUser: string
+  responseFromUser: INVITATION_RESPONSE_ENUM
 
   get createdById() {
     if (this.videoChat){
@@ -110,6 +111,24 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
     }
     return i
   })
+}
+
+export const updateExpiredInvitations = async ({ invitations }: { invitations: InvitationModel[]}) => {
+  const evaluatedInvitations = invitations
+  .filter((i) => {
+    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInMinutes(new Date(), i.createdAt) >= 2
+    return is
+  })
+  .map((i) => {
+    i.responseFromUser = INVITATION_RESPONSE_ENUM.EXPIRED
+    return i
+  })
+
+  const expiredInvitations = evaluatedInvitations
+    .map(i => ({ id: i.id, responseFromUser: i.responseFromUser, invitationType: i.invitationType, senderUuid: i.senderUuid, receiverUuid: i.receiverUuid }))
+  await InvitationModel.bulkCreate(expiredInvitations, { updateOnDuplicate: ["responseFromUser"] })
+
+  return evaluatedInvitations
 }
 
 export const getVideoInvitationsByUserInvitatedId = async ({ userId }: { userId: string }) => {

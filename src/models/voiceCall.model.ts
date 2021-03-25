@@ -1,13 +1,10 @@
 import { Table, Column, Model, DataType, BelongsTo, BelongsToMany, ForeignKey, HasMany, HasOne } from 'sequelize-typescript'
 import UserModel from './user.model'
 import VideoChatToUser from './videoChatToUser.model';
-import { ApiError } from '../utils/ApiError';
 import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, INVITATION_TYPE, sendVideoInvitationTo, getInvitationsBy } from './invitation.model';
-import Invitation from './invitation.model';
 import { Logger } from '../utils/Logger';
 import { sendNotificatioToUserId } from '../socketApp';
 import { WhereAttributeHash, OrOperator } from 'sequelize/types';
-
 
 export enum VOICE_CALL_EVENTS {
   VOICE_CALL_ENDED = "VOICE_CALL_ENDED"
@@ -46,6 +43,15 @@ export default class VoiceCallModel extends Model {
   invitationId: number
   @HasOne(() => VideoChatInvitation)
   invitation: VideoChatInvitation
+}
+
+export const endVoiceChat = async ({ voiceChat }: { voiceChat: VoiceCallModel }) => {
+  Logger.info(`Ending voice chat ${voiceChat.id}`)
+  const endDatetime = new Date()
+  await VoiceCallModel.update({ endDatetime }, { where: { id: voiceChat.id }})
+  const [i] = await getInvitationsBy({ id: voiceChat.invitationId })
+  sendNotificatioToUserId({ userId: voiceChat.createdById, eventName: VOICE_CALL_EVENTS.VOICE_CALL_ENDED, body: voiceChat })
+  sendNotificatioToUserId({ userId: i.toUserId, eventName: VOICE_CALL_EVENTS.VOICE_CALL_ENDED, body: voiceChat })
 }
 
 

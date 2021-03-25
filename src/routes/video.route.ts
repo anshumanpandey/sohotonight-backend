@@ -7,26 +7,15 @@ import UserModel, { discountUserToken } from '../models/user.model';
 import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
-import { getVideoInvitationsByUserInvitatedId, invitationSerializer, declineInvitation, acceptInvitation, getAcceptedInvitations } from '../models/invitation.model';
+import { getVideoInvitationsByUserInvitatedId, invitationSerializer, declineInvitation, acceptInvitation, getAcceptedInvitations, updateExpiredInvitations } from '../models/invitation.model';
 
 export const videoRoutes = express();
 
 videoRoutes.get('/invitations', JwtMiddleware(), asyncHandler(async (req, res) => {
 
-  const invitations = await getVideoInvitationsByUserInvitatedId({ userId: req.user.id })
+  let invitations = await getVideoInvitationsByUserInvitatedId({ userId: req.user.id })
+  invitations = await updateExpiredInvitations({ invitations })
   res.send(invitations.map(invitationSerializer));
-}));
-
-videoRoutes.get('/acceptedInvitations', JwtMiddleware(), asyncHandler(async (req, res) => {
-
-  const invitations = await getAcceptedInvitations({ userId: req.user.id })
-  res.send(invitations.map(invitationSerializer));
-}));
-
-videoRoutes.post('/invitation/reject', JwtMiddleware(), asyncHandler(async (req, res) => {
-
-  await declineInvitation({ invitationId: req.body.invitationId })
-  res.send({ success: true })
 }));
 
 videoRoutes.post('/generateVideoToken', JwtMiddleware(), asyncHandler(async (req, res) => {

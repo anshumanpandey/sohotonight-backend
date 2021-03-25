@@ -9,7 +9,7 @@ import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.mode
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
 import VoiceCallModel, { VOICE_CALL_EVENTS } from "./models/voiceCall.model"
-import { discountForVoiceCall } from "./controllers/voiceCall.controller"
+import { discountForVoiceCall, onVoiceChatEnd } from "./controllers/voiceCall.controller"
 
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
@@ -54,7 +54,7 @@ export const startSocketServer = (s: http.Server) => {
         client.on('DISCOUNT_VIDEO_CHAT', (d) => discountForVideoChat({ ...d, user: client.decoded_token }));
         client.on('VOICE_CALL_ENDED', (d) => discountForVoiceCall({ ...d, user: client.decoded_token }));
         client.on('END_VIDEO_CHAT', onChatEnd);
-
+        client.on('END_VOICE_CHAT', onVoiceChatEnd);
         
         client.on('disconnect', () => {
             console.log("disconnected")

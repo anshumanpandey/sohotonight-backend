@@ -6,7 +6,7 @@ import { validateParams } from '../middlewares';
 import { checkSchema } from 'express-validator';
 import UserModel from '../models/user.model';
 import { createVoiceCall } from '../models/voiceCall.model';
-import { getVoiceInvitationsByUserInvitatedId, invitationSerializer } from '../models/invitation.model';
+import { getVoiceInvitationsByUserInvitatedId, invitationSerializer, updateExpiredInvitations } from '../models/invitation.model';
 
 export const callRoutes = express();
 
@@ -39,6 +39,7 @@ callRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({
 
 callRoutes.get('/invitations', JwtMiddleware(), asyncHandler(async (req, res) => {
 
-  const invitations = await getVoiceInvitationsByUserInvitatedId({ userId: req.user.id })
+  let invitations = await getVoiceInvitationsByUserInvitatedId({ userId: req.user.id })
+  invitations = await updateExpiredInvitations({ invitations })
   res.send(invitations.map(invitationSerializer));
 }));

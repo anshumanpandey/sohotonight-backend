@@ -1,4 +1,3 @@
-import { acceptInvitation } from "../models/invitation.model"
 import UserModel, { discountUserToken } from "../models/user.model"
 import { ApiError } from "../utils/ApiError"
 import { getOngoingVoiceCall, endVoiceCall } from "../models/voiceCall.model"
@@ -17,4 +16,9 @@ export const discountForVoiceCall = async ({ callId, user }: { callId: string, u
     }
 
     await discountUserToken({ user: u })
+}
+
+
+export const onVoiceChatEnd = (voiceCall: any) => {
+    endVoiceCall({ voiceCall })
 }

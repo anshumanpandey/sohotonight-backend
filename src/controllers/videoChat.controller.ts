@@ -3,9 +3,6 @@ import UserModel, { discountUserToken } from "../models/user.model"
 import { ApiError } from "../utils/ApiError"
 import { getOngoingVideoChats, endVideoChat } from "../models/videoChat.model"
 
-export const onInvitationAccepted = async (invitation: any) => {
-    const i = await acceptInvitation({ invitationId: invitation.id })
-}
 
 export const discountForVideoChat = async ({ callId, user }: { callId: string, user: any }) => {
     const u = await UserModel.findByPk(user.id)

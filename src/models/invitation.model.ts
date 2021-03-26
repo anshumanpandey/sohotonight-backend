@@ -1,6 +1,6 @@
 import { Table, Column, Model, ForeignKey, DataType, BelongsTo } from 'sequelize-typescript'
 import { v4 as uuidv4 } from 'uuid';
-import { differenceInMinutes } from 'date-fns'
+import { differenceInSeconds } from 'date-fns'
 import VideoChatModel, { videoChatSerializer } from './videoChat.model';
 import UserModel, { publicUserSerializer } from './user.model';
 import { ApiError } from '../utils/ApiError';
@@ -117,7 +117,7 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
 export const updateExpiredInvitations = async ({ invitations }: { invitations: InvitationModel[]}) => {
   const evaluatedInvitations = invitations
   .map((i) => {
-    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInMinutes(new Date(), i.createdAt) >= 2
+    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInSeconds(new Date(), i.createdAt) >= 15
     if (is) {
       i.responseFromUser = INVITATION_RESPONSE_ENUM.EXPIRED
     }
@@ -181,7 +181,8 @@ export const acceptInvitation = async ({ invitationId }: { invitationId: string 
   const [invitation] = await getInvitationsBy({ id: invitationId })
   if (!invitation) throw new ApiError("Invitation not found")
 
-  await invitation.update({ responseFromUser: INVITATION_RESPONSE_ENUM.ACCEPTED })
+  invitation.responseFromUser = INVITATION_RESPONSE_ENUM.ACCEPTED
+  await invitation.save()
   sendNotificatioToUserId({ userId: invitation.createdById, eventName: INVITATION_EVENTS.INVITATION_ACCEPTED, body: invitationSerializer(invitation) })
 }
 

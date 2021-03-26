@@ -4,7 +4,7 @@ import * as jwtSocket from "socketio-jwt"
 import { JWT_SECRET } from "./middlewares/JwtMiddleware"
 import { DefaultEventsMap } from "socket.io/dist/typed-events"
 import InvitationModel, { INVITATION_EVENTS } from "./models/invitation.model"
-import { onInvitationAccepted, discountForVideoChat, onChatEnd } from "./controllers/videoChat.controller"
+import { discountForVideoChat, onChatEnd } from "./controllers/videoChat.controller"
 import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.model"
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
@@ -50,12 +50,11 @@ export const startSocketServer = (s: http.Server) => {
         handshake: true,
         auth_header_required: true
     }));
-    
+
     //@ts-expect-error
     io.on('connection', (client: socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number }}) => {
         storeUserConnection({ userId: client.decoded_token.id, socketConn: client })
 
-        client.on('ACCEPT_INVITATION', onInvitationAccepted);
         client.on('DISCOUNT_VIDEO_CHAT', (d) => discountForVideoChat({ ...d, user: client.decoded_token }));
         client.on('VOICE_CALL_ENDED', (d) => discountForVoiceCall({ ...d, user: client.decoded_token }));
         client.on('END_VIDEO_CHAT', onChatEnd);

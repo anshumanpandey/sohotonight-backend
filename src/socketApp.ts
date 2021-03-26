@@ -37,7 +37,7 @@ let io = null
 export const startSocketServer = (s: http.Server) => {
     io = new socket.Server(s, {
         cors: {
-            origin: "http://localhost:3000",
+            origin: ["http://localhost:3000", "https://www.sohotonight.com"],
             methods: ["GET", "POST"]
           }
     })

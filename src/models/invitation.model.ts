@@ -24,6 +24,7 @@ export enum INVITATION_EVENTS {
   NEW_VOICE_INVITATION = "NEW_VOICE_INVITATION",
   NEW_VIDEO_INVITATION = "NEW_VIDEO_INVITATION",
   INVITATION_ACCEPTED = "INVITATION_ACCEPTED",
+  INVITATION_DECLINED = "INVITATION_DECLINED",
 }
 
 @Table
@@ -185,10 +186,11 @@ export const acceptInvitation = async ({ invitationId }: { invitationId: string 
 }
 
 export const declineInvitation = async ({ invitationId }: { invitationId: string }) => {
-  const invitation = await InvitationModel.findByPk(invitationId)
+  const [invitation] = await getInvitationsBy({ id: invitationId })
   if (!invitation) throw new ApiError("Invitation not found")
 
   await invitation.update({ responseFromUser: INVITATION_RESPONSE_ENUM.REJECTED })
+  sendNotificatioToUserId({ userId: invitation.createdById, eventName: INVITATION_EVENTS.INVITATION_DECLINED, body: invitationSerializer(invitation) })
 }
 
 export const invitationSerializer = (i: InvitationModel) => {

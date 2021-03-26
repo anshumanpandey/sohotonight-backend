@@ -13,6 +13,7 @@ import { discountForVoiceCall, onVoiceChatEnd } from "./controllers/voiceCall.co
 
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
+    [INVITATION_EVENTS.INVITATION_DECLINED]: InvitationModel
     [INVITATION_EVENTS.NEW_VIDEO_INVITATION]: InvitationModel
     [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel,
     [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,

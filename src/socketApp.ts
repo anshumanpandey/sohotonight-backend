@@ -28,7 +28,10 @@ const storeUserConnection = ({ userId, socketConn }: { userId: number, socketCon
 
 export const sendNotificatioToUserId = ({ userId, eventName, body }: { userId: string | number, eventName: keyof EmitEvents, body: unknown }) => {
     const conn = connDictionary.get(userId)
-    if (!conn) return null
+    if (!conn) {
+        Logger.info(`connection for user ${userId} not found`)
+        return null
+    }
 
     Logger.info(`sending event [${eventName}] to user ${userId}`)
     conn.emit(eventName, body)

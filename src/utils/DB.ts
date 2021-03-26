@@ -3,7 +3,7 @@ import path from "path";
 
 let SequalizeConfig: SequelizeOptions = {
   models: [ path.join(__dirname, '..', 'models')],
-  logging: process.env.DISABLED_SEQUELIZE_LOGS === undefined
+  logging: process.env.DISABLED_SEQUELIZE_LOGS === undefined ? true: false
 }
 
 if (process.env.DB_DIALECT) {

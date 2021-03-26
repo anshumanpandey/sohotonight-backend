@@ -22,6 +22,7 @@ type EmitEvents = {
 const connDictionary = new Map<string | number, socket.Socket<EmitEvents, DefaultEventsMap>>()
 
 const storeUserConnection = ({ userId, socketConn }: { userId: number, socketConn: socket.Socket<DefaultEventsMap, DefaultEventsMap> }) => {
+    Logger.info(`storing connection for user ${userId}`)
     connDictionary.set(userId, socketConn)
 }
 

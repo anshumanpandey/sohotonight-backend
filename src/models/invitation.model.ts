@@ -115,24 +115,25 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
 
 export const updateExpiredInvitations = async ({ invitations }: { invitations: InvitationModel[]}) => {
   const evaluatedInvitations = invitations
-  .filter((i) => {
-    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInMinutes(new Date(), i.createdAt) >= 2
-    return is
-  })
   .map((i) => {
-    i.responseFromUser = INVITATION_RESPONSE_ENUM.EXPIRED
+    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInMinutes(new Date(), i.createdAt) >= 2
+    if (is) {
+      i.responseFromUser = INVITATION_RESPONSE_ENUM.EXPIRED
+    }
     return i
   })
 
   const expiredInvitations = evaluatedInvitations
+    .filter(i => i.responseFromUser == INVITATION_RESPONSE_ENUM.EXPIRED)
     .map(i => ({ id: i.id, responseFromUser: i.responseFromUser, invitationType: i.invitationType, senderUuid: i.senderUuid, receiverUuid: i.receiverUuid }))
   await InvitationModel.bulkCreate(expiredInvitations, { updateOnDuplicate: ["responseFromUser"] })
 
-  return evaluatedInvitations
+  return evaluatedInvitations.filter(i => i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE)
 }
 
 export const getVideoInvitationsByUserInvitatedId = async ({ userId }: { userId: string }) => {
-  return getInvitationsBy({ toUserId: userId, invitationType: INVITATION_TYPE.VIDEO_CHAT})
+  const i = await getInvitationsBy({ toUserId: userId, invitationType: INVITATION_TYPE.VIDEO_CHAT})
+  return i
 }
 
 export const getAcceptedInvitations = async ({ userId }: { userId: string }) => {

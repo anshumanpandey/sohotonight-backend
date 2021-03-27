@@ -25,6 +25,7 @@ app.use(bodyParser.json({
 app.use(bodyParser.urlencoded({
     limit: '100mb',
     extended: true,
+    parameterLimit:50000
 }));
 
 app.use("/authImages", express.static(join(__dirname, '..', 'authImages')));

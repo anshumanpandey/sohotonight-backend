@@ -210,7 +210,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.put('/update', RoleCheck(USER_ROLE_ENUM.MODEL), profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), JwtMiddleware(), asyncHandler(async (req, res) => {
+userRoutes.put('/update', JwtMiddleware(), RoleCheck(USER_ROLE_ENUM.MODEL), profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), asyncHandler(async (req, res) => {
   const fieldsToUpdate = {
     ...req.body,
     isTrans: req.body.isTrans ? req.body.isTrans === 'true' : undefined,
@@ -236,7 +236,7 @@ userRoutes.put('/update', RoleCheck(USER_ROLE_ENUM.MODEL), profileFiles.fields([
   }
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
   let u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
-  const servicesId = req.body.Services.split(",")
+  const servicesId = req.body.services ? req.body.services.split(",") : []
 
   if (req.body.Services && servicesId.length != 0){
     const services = await ServiceModel.findAll({ where: { id: servicesId } })

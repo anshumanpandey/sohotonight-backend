@@ -210,7 +210,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   res.send({ ...jsonData, token });
 }));
 
-userRoutes.put('/update', JwtMiddleware(), RoleCheck(USER_ROLE_ENUM.MODEL), profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), asyncHandler(async (req, res) => {
+userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'bannerImage', maxCount: 1 }, { name: 'authenticatePic', maxCount: 1 }]), JwtMiddleware(), RoleCheck(USER_ROLE_ENUM.MODEL), asyncHandler(async (req, res) => {
   const fieldsToUpdate = {
     ...req.body,
     isTrans: req.body.isTrans ? req.body.isTrans === 'true' : undefined,

@@ -78,7 +78,7 @@ export default class InvitationModel extends Model {
   }
 }
 
-type InvitationByParams = { id?: string,toUserId?: string, invitationType: INVITATION_TYPE, responseFromUser?: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, createdById: string }
+type InvitationByParams = { id?: string,toUserId?: string, invitationType: INVITATION_TYPE, responseFromUser?: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, createdById: string, sortByNewest?: boolean }
 export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams>) => {
   const where: WhereAttributeHash = {}
   if (by.invitationType) {
@@ -90,11 +90,14 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
   if (by.id) {
     where.id = by.id
   }
+  if (by?.responseFromUser) {
+    where.responseFromUser = by.responseFromUser
+  }
   const chatWhere: WhereAttributeHash = {}
   if (by.createdById) {
     chatWhere.createdById = by.createdById
   }
-  const invitations = await InvitationModel
+  let invitations = await InvitationModel
     .findAll({
       where,
       include: [
@@ -103,7 +106,7 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
       ]
     })
 
-  return invitations.map(i => {
+  invitations = invitations.map(i => {
     if (i.videoChat) {
       i.videoChat.invitation = i
     }
@@ -112,12 +115,20 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
     }
     return i
   })
+
+  if (by?.sortByNewest && by.sortByNewest === true) {
+    return invitations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  }
+
+  return invitations
 }
+
+const invitationIsExpired = (i: InvitationModel) => differenceInSeconds(new Date(), i.createdAt) >= 15
 
 export const updateExpiredInvitations = async ({ invitations }: { invitations: InvitationModel[]}) => {
   const evaluatedInvitations = invitations
   .map((i) => {
-    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && differenceInSeconds(new Date(), i.createdAt) >= 15
+    const is = i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE && invitationIsExpired(i)
     if (is) {
       i.responseFromUser = INVITATION_RESPONSE_ENUM.EXPIRED
     }
@@ -169,10 +180,11 @@ export const sendVideoInvitationTo = async ({ toUser, callObj }: { toUser: UserM
     throw new ApiError('Could not create the invitation')
   }
 
+  const [inv] = await getInvitationsBy({ toUserId: toUser.id, invitationType: invitationData.invitationType, responseFromUser: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, sortByNewest: true })
+  if (inv && invitationIsExpired(inv) === false) throw new ApiError("Invitation already sended")
+
   const i = await InvitationModel.create(invitationData)
-
   const invitation = await getInvitationsBy({ id: i.id })
-
   sendNotificatioToUserId({ userId: toUser.id, eventName: invitationEvent, body: invitationSerializer(invitation[0]) })
   return i
 }

@@ -17,13 +17,13 @@ const app = express();
 app.use(cors())
 app.use(morgan("tiny"))
 app.use(bodyParser.json({
-    limit: '50mb',
+    limit: '100mb',
     verify(req: any, res, buf, encoding) {
         req.rawBody = buf;
     }
 }));
 app.use(bodyParser.urlencoded({
-    limit: '50mb',
+    limit: '100mb',
     extended: true,
 }));
 

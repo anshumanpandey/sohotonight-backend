@@ -25,6 +25,7 @@ export enum INVITATION_EVENTS {
   NEW_VIDEO_INVITATION = "NEW_VIDEO_INVITATION",
   INVITATION_ACCEPTED = "INVITATION_ACCEPTED",
   INVITATION_DECLINED = "INVITATION_DECLINED",
+  INVITATION_HANDSHAKE = "INVITATION_HANDSHAKE",
 }
 
 @Table
@@ -204,6 +205,17 @@ export const declineInvitation = async ({ invitationId }: { invitationId: string
 
   await invitation.update({ responseFromUser: INVITATION_RESPONSE_ENUM.REJECTED })
   sendNotificatioToUserId({ userId: invitation.createdById, eventName: INVITATION_EVENTS.INVITATION_DECLINED, body: invitationSerializer(invitation) })
+}
+
+export const doHandshake = async ({ invitation: i, handshake, user }:{ handshake: any, invitation: InvitationModel, user: UserModel }) => {
+  const [invitation] = await getInvitationsBy({ id: i.id })
+
+  let sendTo = invitation.createdById
+  if (invitation.createdById == user.id) {
+    sendTo = invitation.toUserId
+  }
+
+  sendNotificatioToUserId({ userId: sendTo, eventName: INVITATION_EVENTS.INVITATION_HANDSHAKE, body: handshake })
 }
 
 export const invitationSerializer = (i: InvitationModel) => {

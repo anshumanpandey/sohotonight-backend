@@ -3,7 +3,7 @@ import * as socket from "socket.io"
 import * as jwtSocket from "socketio-jwt"
 import { JWT_SECRET } from "./middlewares/JwtMiddleware"
 import { DefaultEventsMap } from "socket.io/dist/typed-events"
-import InvitationModel, { INVITATION_EVENTS } from "./models/invitation.model"
+import InvitationModel, { INVITATION_EVENTS, doHandshake } from "./models/invitation.model"
 import { discountForVideoChat, onChatEnd } from "./controllers/videoChat.controller"
 import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.model"
 import VideoModel from "./models/video.model"
@@ -18,6 +18,7 @@ type EmitEvents = {
     [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel,
     [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,
     [VOICE_CALL_EVENTS.VOICE_CALL_ENDED]: VoiceCallModel
+    [INVITATION_EVENTS.INVITATION_HANDSHAKE]: any
 }
 const connDictionary = new Map<string | number, socket.Socket<EmitEvents, DefaultEventsMap>>()
 
@@ -59,6 +60,7 @@ export const startSocketServer = (s: http.Server) => {
         client.on('VOICE_CALL_ENDED', (d) => discountForVoiceCall({ ...d, user: client.decoded_token }));
         client.on('END_VIDEO_CHAT', onChatEnd);
         client.on('END_VOICE_CHAT', onVoiceChatEnd);
+        client.on('CONNECTION_HANDSHAKE', (e) => doHandshake({ ...e, user: client.decoded_token }) );
         
         client.on('disconnect', () => {
             console.log("disconnected")

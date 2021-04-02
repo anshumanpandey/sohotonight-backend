@@ -10,6 +10,7 @@ import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
 import VoiceCallModel, { VOICE_CALL_EVENTS } from "./models/voiceCall.model"
 import { discountForVoiceCall, onVoiceChatEnd } from "./controllers/voiceCall.controller"
+import MessageModel, { MESSAGES_EVENT_ENUM } from "./models/Message.model"
 
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
@@ -19,6 +20,7 @@ type EmitEvents = {
     [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,
     [VOICE_CALL_EVENTS.VOICE_CALL_ENDED]: VoiceCallModel
     [INVITATION_EVENTS.INVITATION_HANDSHAKE]: any
+    [MESSAGES_EVENT_ENUM.NEW_MESSAGE]: MessageModel
 }
 const connDictionary = new Map<string | number, socket.Socket<EmitEvents, DefaultEventsMap>>()
 

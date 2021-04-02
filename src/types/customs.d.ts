@@ -1,5 +1,6 @@
 declare namespace Express {
-  interface Request {
+  interface Request<B = {}> {
     user: { id: string };
+    body: B;
   }
 }

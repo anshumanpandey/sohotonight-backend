@@ -4,6 +4,8 @@ import { getUsersBy } from "../models/user.model";
 import { ApiError } from "../utils/ApiError";
 
 export const createConversation = async(req: express.Request<{}, {}, { toUserId: string }>, res: express.Response) => {
+    if (req.body.toUserId == req.user.id) throw new ApiError("Cannot create chat");
+
     const user = await getUsersBy({ id: req.body.toUserId })
     if (!user) throw new ApiError("User to create chat with not found");
 

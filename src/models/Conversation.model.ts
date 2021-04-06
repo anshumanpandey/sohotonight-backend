@@ -33,7 +33,7 @@ export const getConversationBy = async ({ implicatedUserId, toUserId, id }: { id
   if (id !== undefined) {
     by.id = id
   }
-  const c = await ConversationModel.findAll({ where: by, include: [{ model: UserModel, as: "toUser" }, { model: UserModel, as: "createdByUser" },{ model: MessageModel }] })
+  const c = await ConversationModel.findAll({ where: by, include: [{ model: UserModel, as: "toUser" }, { model: UserModel, as: "createdByUser" },{ model: MessageModel, include: [{ model: UserModel }] }] })
 
   return c.map(c => {
     c.messages = c.messages.sort((a,b) => a.createdAt.getTime() - b.createdAt.getTime())

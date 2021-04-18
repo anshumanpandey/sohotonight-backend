@@ -1,5 +1,5 @@
 import { Table, Column, Model, DataType, HasMany, BelongsToMany } from 'sequelize-typescript'
-import { Op } from "sequelize"
+import { Op, Transaction } from "sequelize"
 import PictureModel from "./picture.model";
 import VideoModel from "./video.model";
 import PostModel from "./post.model";
@@ -354,10 +354,10 @@ export const clearUrlFromAsset = function(user) {
   return u
 };
 
-export const discountUserToken = ({ user, amount = 1 }: { user: UserModel, amount?: number}) => {
+export const discountUserToken = ({ user, amount = 1 }: { user: UserModel, amount?: number}, opt?: { t?: Transaction}) => {
   const tokenAmount = user.tokensBalance - amount
   Logger.info(`Tokens ${tokenAmount} deducted for user ${user.id}`)
-  return user.update({ tokensBalance: tokenAmount })
+  return user.update({ tokensBalance: tokenAmount }, { transaction: opt?.t })
 }
 
 export const getUsersBy = (by: WhereAttributeHash) => {

@@ -21,7 +21,7 @@ export default class PictureModel extends Model {
     type: DataType.BOOLEAN,
     defaultValue: false
   })
-  isFree: number
+  isFree: boolean
 
   @ForeignKey(() => UserModel)
   userId: string

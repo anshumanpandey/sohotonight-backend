@@ -1,14 +1,21 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, BelongsTo } from 'sequelize-typescript'
 import UserModel from './user.model'
+import { AwsFile } from '../utils/AwsS3Client'
 
 @Table
-export default class VideoModel extends Model {
+export default class VideoModel extends Model implements AwsFile {
 
   @Column({
     type: DataType.STRING(500),
     allowNull: false,
   })
-  videoUrl: number
+  assetUrl: string
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: false,
+  })
+  awsKey: string
 
   @Column({
     type: DataType.FLOAT({ length: 10, decimals: 2 }),

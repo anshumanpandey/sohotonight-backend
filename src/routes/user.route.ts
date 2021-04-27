@@ -16,6 +16,8 @@ import { sendEmail } from '../utils/Mail';
 import ServiceModel from '../models/services.model';
 import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { RoleCheck } from '../middlewares/RoleCheck';
+import AssetBought from '../models/AssetBought.model';
+import { v4 as uuidv4 } from 'uuid';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -23,13 +25,16 @@ const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'video
 const fieldSize = 500 * 1024 * 1024
 
 const storage = GetMulterCloudnaryStorage({
+  acl: "private",
   resolveDestination: (req, file) => {  
+    const id = uuidv4()
+
     if (file.fieldname === "profilePic") {
-      return "profilePic"
+      return `profilePic/${id}.${file.originalname.split('.').pop()}`
     } else if (file.fieldname === "bannerImage") {
-      return "banners"
+      return `banners/${id}.${file.originalname.split('.').pop()}`
     } else if (file.fieldname === "authenticatePic") {
-      return "authImages"
+      return `authImages/${id}.${file.originalname.split('.').pop()}`
     }
   }
 })
@@ -65,7 +70,10 @@ userRoutes.post('/login', validateParams(checkSchema({
   const { nickname, password } = req.body;
   const user = await UserModel.findOne({
     where: { nickname },
-    include: [{ model: ServiceModel }],
+    include: [
+      { model: ServiceModel },
+      { model: AssetBought },
+    ],
     attributes: { exclude: ["createdAt", "updatedAt"] }
   });
 
@@ -199,9 +207,7 @@ userRoutes.post('/register', validateParams(checkSchema({
 
   const hashedPass = await hash(password, 8)
   const userData = { password: hashedPass, nickname,emailAddress, ...fields, role: USER_ROLE_ENUM[fields.role.toUpperCase() as USER_ROLE_ENUM] }
-  /*const callNumberObj = await createIncomingPhoneNumber()
-  userData.callNumber = callNumberObj.phoneNumber*/
-  const user = await UserModel.create(userData, { include: [{ model: ServiceModel }]})
+  const user = await UserModel.create(userData, { include: [{ model: ServiceModel }, { model: AssetBought }]})
 
   const jsonData = user.toJSON();
   //@ts-ignore
@@ -289,7 +295,7 @@ userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
 }));
 
 userRoutes.get('/getUser', JwtMiddleware(),asyncHandler(async (req, res) => {
-  res.send(await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] }));
+  res.send(await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] }));
 }));
 
 userRoutes.get('/public/getImages/:id?', asyncHandler(async (req, res) => {
@@ -342,7 +348,7 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
 
 userRoutes.post('/addPicture', upload.single("picture"), JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await PictureModel.create({ price: req.body.price || null, imageName: req.file.path, isFree: req.body.isFree == "1" })
+  const picture = await PictureModel.create({ price: req.body.price || null, assetUrl: req.file.path, isFree: req.body.isFree == "1" })
   //@ts-expect-error
   await user.addPicture(picture)
   res.send({ success: 'Image added' });
@@ -350,7 +356,8 @@ userRoutes.post('/addPicture', upload.single("picture"), JwtMiddleware(), asyncH
 
 userRoutes.post('/addVideo', uploadVideo.single("video"), JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await VideoModel.create({ price: req.body.price  || null, videoUrl: req.file.path, isFree: req.body.isFree == "1", UserId: req.user?.id })
+  //@ts-expect-error
+  const picture = await VideoModel.create({ awsKey: req.file.key, price: req.body.price || null, assetUrl: req.file.location, isFree: req.body.isFree == "1", UserId: req.user?.id })
   //@ts-expect-error
   await user.addVideo(picture)
   res.send({ success: 'Video added' });

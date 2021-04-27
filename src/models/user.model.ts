@@ -10,6 +10,7 @@ import VideoChatToUser from './videoChatToUser.model';
 import VideoChatModel from './videoChat.model';
 import { WhereAttributeHash } from 'sequelize/types';
 import { Logger } from '../utils/Logger';
+import AssetBought from './AssetBought.model';
 
 export enum USER_ROLE_ENUM {
   MODEL = "MODEL",
@@ -312,6 +313,9 @@ export default class UserModel extends Model {
   @HasMany(() => VideoModel)
   Videos: VideoModel
 
+  @HasMany(() => AssetBought)
+  assetsBought: AssetBought[]
+
   @HasMany(() => PictureModel)
   Pictures: PictureModel[]
 
@@ -330,7 +334,7 @@ export const clearUrlFromAsset = function(user) {
   const filteredVideos = user?.Videos.map((vid: any) => {
     const v = vid.toJSON()
     if (v.isFree == false) {
-      const { videoUrl, ...video} = v
+      const { assetUrl, ...video} = v
       return video
     } 
     return v
@@ -340,7 +344,7 @@ export const clearUrlFromAsset = function(user) {
   const filteredPictures = user?.Pictures?.map(vid => {
     const v = vid.toJSON()
     if (v.isFree == false) {
-      const { imageName, ...video} = v
+      const { assetUrl, ...video} = v
       return video
     } 
     return v

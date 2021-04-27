@@ -1,14 +1,9 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, BelongsTo } from 'sequelize-typescript'
 import UserModel from './user.model'
+import { AwsFile } from '../utils/AwsS3Client'
 
 @Table
-export default class PictureModel extends Model {
-
-  @Column({
-    type: DataType.STRING(500),
-    allowNull: false,
-  })
-  imageName: number
+export default class PictureModel extends Model implements AwsFile {
 
   @Column({
     type: DataType.FLOAT({ length: 10, decimals: 2 }),
@@ -16,6 +11,12 @@ export default class PictureModel extends Model {
     defaultValue: null
   })
   price: number | null
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: false,
+  })
+  awsKey: string
 
   @Column({
     type: DataType.BOOLEAN,

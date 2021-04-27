@@ -6,7 +6,7 @@ import VideoModel from '../models/video.model';
 import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { validateParams } from '../middlewares';
 import { checkSchema } from 'express-validator';
-import { buyAssetController } from '../controllers/asset,controller';
+import { buyAssetController, generateAssetUrlController } from '../controllers/asset.controller';
 
 export const assetsRoutes = express();
 
@@ -21,6 +21,32 @@ assetsRoutes.get('/single/:type/:id', asyncHandler(async (req, res) => {
 
   res.send(file);
 }));
+
+assetsRoutes.post('/generateUrl', JwtMiddleware(), validateParams(checkSchema({
+  assetId: {
+    in: ['body'],
+    exists: {
+      errorMessage: 'Missing field'
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+  assetType: {
+    in: ['body'],
+    isIn: {
+      errorMessage: `must be one of VIDEO, PICTURE`,
+      options: [["VIDEO", "PICTURE"]],
+    },
+    isEmpty: {
+      errorMessage: 'Missing field',
+      negated: true
+    },
+    trim: true
+  },
+})), asyncHandler(generateAssetUrlController));
 
 assetsRoutes.post('/buy', JwtMiddleware(), validateParams(checkSchema({
   assetId: {
@@ -49,8 +75,7 @@ assetsRoutes.post('/buy', JwtMiddleware(), validateParams(checkSchema({
     in: ['body'],
     isIn: {
       errorMessage: `must be one of VIDEO, PICTURE`,
-      options: ["VIDEO", "PICTURE"],
-      negated: true
+      options: [["VIDEO", "PICTURE"]],
     },
     isEmpty: {
       errorMessage: 'Missing field',

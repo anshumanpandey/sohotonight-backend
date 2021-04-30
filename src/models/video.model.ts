@@ -1,9 +1,9 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, BelongsTo } from 'sequelize-typescript'
 import UserModel from './user.model'
-import { AwsFile } from '../utils/AwsS3Client'
+import { AwsFileSigning } from '../utils/AwsS3Client'
 
 @Table
-export default class VideoModel extends Model implements AwsFile {
+export default class VideoModel extends Model implements AwsFileSigning {
 
   @Column({
     type: DataType.STRING(500),

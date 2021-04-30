@@ -22,7 +22,7 @@ export const ALLOWED_ROLE = [
   USER_ROLE_ENUM.USER,
 ]
 
-interface UserAttributes {
+export interface UserAttributes {
   id: string,
   nickname: string,
   firstName?: string,
@@ -350,7 +350,7 @@ export const clearUrlFromAsset = function(user) {
     return v
   })
 
-  const u = user?.toJSON();
+  const u = user;
 
   u.Videos = filteredVideos
   u.Pictures = filteredPictures

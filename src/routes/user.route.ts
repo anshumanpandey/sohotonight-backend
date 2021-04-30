@@ -18,6 +18,7 @@ import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { RoleCheck } from '../middlewares/RoleCheck';
 import AssetBought from '../models/AssetBought.model';
 import { v4 as uuidv4 } from 'uuid';
+import modelSerializer from '../serializers/model.serializer';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -228,17 +229,17 @@ userRoutes.put('/update', profileFiles.fields([{ name: 'profilePic', maxCount: 1
   //@ts-expect-error
   if (req.files?.profilePic) {
     //@ts-expect-error
-    fieldsToUpdate.profilePic = req.files.profilePic[0].path
+    fieldsToUpdate.profilePic = req.files.profilePic[0].location
   }
   //@ts-expect-error
   if (req.files?.bannerImage) {
     //@ts-expect-error
-    fieldsToUpdate.bannerImage = req.files.bannerImage[0].path
+    fieldsToUpdate.bannerImage = req.files.bannerImage[0].location
   }
   //@ts-expect-error
   if (req.files?.authenticatePic) {
   //@ts-expect-error
-    fieldsToUpdate.authenticationProfilePic = req.files.authenticatePic[0].path
+    fieldsToUpdate.authenticationProfilePic = req.files.authenticatePic[0].location
   }
   await UserModel.update(fieldsToUpdate, { where: { id: req.user.id } })
   let u = await UserModel.findByPk(req.user.id, { include: [{ model: ServiceModel }]})
@@ -287,7 +288,7 @@ userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
   if (!req.user || req.params.id != req.user.id){
     response = clearUrlFromAsset(user)
   }
-  res.send(response);
+  res.send(await modelSerializer(response));
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
@@ -348,7 +349,8 @@ userRoutes.delete('/deleteVideo', validateParams(checkSchema({
 
 userRoutes.post('/addPicture', upload.single("picture"), JwtMiddleware(), asyncHandler(async (req, res) => {
   const user = await UserModel.findByPk(req.user.id)
-  const picture = await PictureModel.create({ price: req.body.price || null, assetUrl: req.file.path, isFree: req.body.isFree == "1" })
+  //@ts-expect-error
+  const picture = await PictureModel.create({ price: req.body.price || null, awsKey: req.file.key, isFree: req.body.isFree == "1" })
   //@ts-expect-error
   await user.addPicture(picture)
   res.send({ success: 'Image added' });

@@ -14,8 +14,9 @@ export default ({ acl = "private", folderPath, resolveDestination }: UploadMiddl
     const storage = new multerS3({
         s3: S3Client,
         acl,
+        contentType: multerS3.AUTO_CONTENT_TYPE,
         bucket: AWS_BUCKET,
-        contentDisposition: 'attachment',
+        //contentDisposition: 'attachment',
         key: resolveDestination ? (req: any, file: any, cb: any) => cb(null,resolveDestination(req, file)) : (r: any, f: any, cb: any) => {
             const id = uuidv4()
             cb(null, `${folderPath}/${id}.${f.originalname.split('.').pop()}`)

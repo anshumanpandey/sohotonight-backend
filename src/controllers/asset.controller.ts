@@ -5,8 +5,7 @@ import PictureModel from '../models/picture.model';
 import UserModel, { discountUserToken } from '../models/user.model';
 import { createAssetBought, findBoughtAssetBy } from '../models/AssetBought.model';
 import sequelize from '../utils/DB';
-import Cloudinary from '../utils/CloudinaryClient';
-import { S3Client, signAwsUrl } from '../utils/AwsS3Client';
+import { signAwsUrl } from '../utils/AwsS3Client';
 
 export const buyAssetController: express.RequestHandler = async (req, res) => {
     await sequelize.transaction(async (t) => {

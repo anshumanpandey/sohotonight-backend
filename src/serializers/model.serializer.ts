@@ -24,7 +24,7 @@ export const publicModelSerializer = async (u: UserModel, req: any) => {
                 return ({ ...p, assetUrl: await signAwsUrl({ awsKey: p.awsKey })})
 
             } else {
-                return ({ ...p, assetUrl: `https://www.sohotonight.com/assets/soho-watchme.png` })
+                return ({ ...p, assetUrl: `https://www.sohotonight.com/publicAssets/soho-watchme.png` })
             }
         })),
         //@ts-expect-error
@@ -32,7 +32,7 @@ export const publicModelSerializer = async (u: UserModel, req: any) => {
             if (p.isFree) {
                 return ({ ...p, assetUrl: await signAwsUrl({ awsKey: p.awsKey })})
             } else {
-                return ({ ...p, assetUrl: `https://www.sohotonight.com/assets/mov_bbb.mp4` })
+                return ({ ...p, assetUrl: `https://www.sohotonight.com/publicAssets/mov_bbb.mp4` })
             }
         }))
     }

@@ -7,7 +7,7 @@ import UserModel, { discountUserToken } from '../models/user.model';
 import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
-import { getVideoInvitationsByUserInvitatedId, invitationSerializer, declineInvitation, acceptInvitation, getAcceptedInvitations, updateExpiredInvitations } from '../models/invitation.model';
+import { getVideoInvitationsByUserInvitatedId, invitationSerializer, updateExpiredInvitations } from '../models/invitation.model';
 
 export const videoRoutes = express();
 

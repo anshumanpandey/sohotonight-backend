@@ -33,7 +33,7 @@ app.use("/banners", express.static(join(__dirname, '..', 'banners')));
 app.use("/videos", express.static(join(__dirname, '..', 'videos')));
 app.use("/profilePic", express.static(join(__dirname, '..', 'profilePic')));
 app.use("/pictures", express.static(join(__dirname, '..', 'pictures')));
-app.use("/assets", express.static(join(__dirname, '..', 'assets')));
+app.use("/publicAssets", express.static(join(__dirname, '..', 'assets')));
 app.use(express.static(join(__dirname, '../templates')));
 
 app.use('/api', routes)

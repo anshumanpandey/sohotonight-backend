@@ -18,7 +18,7 @@ import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { RoleCheck } from '../middlewares/RoleCheck';
 import AssetBought from '../models/AssetBought.model';
 import { v4 as uuidv4 } from 'uuid';
-import modelSerializer from '../serializers/model.serializer';
+import { userSerializerFactory } from '../serializers/model.serializer';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -281,14 +281,14 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 }));
 
 
-userRoutes.get('/public/getUser/:id?', asyncHandler(async (req, res) => {
+userRoutes.get('/public/getUser/:id?', JwtMiddleware({ credentialsRequired: false, ex: 'a' }), asyncHandler(async (req, res) => {
   const user = await UserModel.findOne({ where: { id: req.params.id, role: USER_ROLE_ENUM.MODEL },attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user
   if (!req.user || req.params.id != req.user.id){
     response = clearUrlFromAsset(user)
   }
-  res.send(await modelSerializer(response));
+  res.send(await userSerializerFactory({ req, user: response }));
 }));
 
 userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {

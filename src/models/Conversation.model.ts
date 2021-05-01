@@ -21,7 +21,7 @@ export default class ConversationModel extends Model {
   messages: MessageModel[]
 }
 
-export const getConversationBy = async ({ implicatedUserId, toUserId, id }: { id?: string, implicatedUserId?: string | number, toUserId?: string | number }) => {
+export const getConversationBy = async ({ implicatedUserId, toUserId, createdByUserId, id }: { id?: string, createdByUserId?: string, implicatedUserId?: string | number, toUserId?: string | number }) => {
   const by: WhereAttributeHash<any> | OrOperator<any> = {}
   
   if (implicatedUserId !== undefined) {
@@ -33,6 +33,10 @@ export const getConversationBy = async ({ implicatedUserId, toUserId, id }: { id
   if (id !== undefined) {
     by.id = id
   }
+  if (createdByUserId !== undefined) {
+    by.createdByUserId = createdByUserId
+  }
+  
   const c = await ConversationModel.findAll({ where: by, include: [{ model: UserModel, as: "toUser" }, { model: UserModel, as: "createdByUser" },{ model: MessageModel, include: [{ model: UserModel }] }] })
 
   return c.map(c => {

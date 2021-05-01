@@ -9,7 +9,7 @@ export const createConversation = async(req: express.Request<{}, {}, { toUserId:
     const user = await getUsersBy({ id: req.body.toUserId })
     if (!user) throw new ApiError("User to create chat with not found");
 
-    const [alredyCreate] = await getConversationBy({ toUserId: req.body.toUserId })
+    const [alredyCreate] = await getConversationBy({ toUserId: req.body.toUserId, createdByUserId: req.user.id })
     if (!alredyCreate) {
         const c = await createChat({ createdByUserId: req.user.id, toUserId: req.body.toUserId })
     }

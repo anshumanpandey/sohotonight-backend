@@ -4,10 +4,11 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import PostModel from '../models/post.model';
+import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 
 export const postRoutes = express();
 
-postRoutes.post('/create', jwt({ secret: process.env.JWT_SECRET || 'aa', algorithms: ['HS256'] }), validateParams(checkSchema({
+postRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({
   body: {
     in: ['body'],
     exists: {
@@ -22,7 +23,7 @@ postRoutes.post('/create', jwt({ secret: process.env.JWT_SECRET || 'aa', algorit
 })), asyncHandler(async (req, res) => {
   const { body } = req.body;
 
-  await PostModel.create({ body, UserId: req.user.id });
+  await PostModel.create({ body, userId: req.user.id });
 
   res.send({ success: 'Post Created' });
 }));

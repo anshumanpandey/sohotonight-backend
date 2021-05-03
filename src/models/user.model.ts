@@ -308,7 +308,7 @@ export default class UserModel extends Model {
   authenticationProfilePicIsAuthenticated: boolean
 
   @HasMany(() => PostModel)
-  post: PostModel
+  Posts: PostModel
 
   @HasMany(() => VideoModel)
   Videos: VideoModel
@@ -375,4 +375,9 @@ export const publicUserSerializer = (u: UserModel) => {
 
 export const getModels = () => {
   return UserModel.findAll({ where: { [Op.not]: { role: USER_ROLE_ENUM.USER }},attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] })
+}
+
+export const getLoggedUserData = async (userId: string) => {
+  const u = await UserModel.findByPk(userId,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] })
+  return u
 }

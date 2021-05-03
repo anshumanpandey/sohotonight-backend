@@ -282,7 +282,8 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 
 
 userRoutes.get('/public/getUser/:id?', JwtMiddleware({ credentialsRequired: false, ex: 'a' }), asyncHandler(async (req, res) => {
-  const user = await UserModel.findOne({ where: { id: req.params.id, role: USER_ROLE_ENUM.MODEL },attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
+  const user = await UserModel
+    .findOne({ where: { id: req.params.id, role: USER_ROLE_ENUM.MODEL },attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")
   let response = user
   if (!req.user || req.params.id != req.user.id){
@@ -296,7 +297,8 @@ userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
 }));
 
 userRoutes.get('/getUser', JwtMiddleware(),asyncHandler(async (req, res) => {
-  res.send(await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] }));
+  const u = await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] })
+  res.send(u);
 }));
 
 userRoutes.get('/public/getImages/:id?', asyncHandler(async (req, res) => {

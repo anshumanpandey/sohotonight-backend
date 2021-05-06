@@ -20,7 +20,7 @@ export const publicModelSerializer = async (u: UserModel, req: any) => {
         ...plainObj,
         //@ts-expect-error
         Pictures: await Promise.all(plainObj.Pictures.map(async p => {
-            if (p.isFree || req?.user.assetsBought.find((a: any) => a.pictureId == p.id)) {
+            if (p.isFree || (req?.user && req?.user.assetsBought.find((a: any) => a.pictureId == p.id))) {
                 return ({ ...p, assetUrl: await signAwsUrl({ awsKey: p.awsKey })})
 
             } else {
@@ -29,7 +29,7 @@ export const publicModelSerializer = async (u: UserModel, req: any) => {
         })),
         //@ts-expect-error
         Videos: await Promise.all(plainObj.Videos.map(async p => {
-            if (p.isFree || req?.user.assetsBought.find((a: any) => a.videoId == p.id)) {
+            if (p.isFree || (req?.user && req?.user.assetsBought.find((a: any) => a.videoId == p.id))) {
                 return ({ ...p, assetUrl: await signAwsUrl({ awsKey: p.awsKey })})
             } else {
                 return ({ ...p, assetUrl: `https://www.sohotonight.com/publicAssets/mov_bbb.mp4` })

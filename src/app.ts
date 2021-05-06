@@ -56,7 +56,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
         console.log(err)
         res.status(500).json({
             statusCode: 500,
-            message: "UNKWON ERROR"
+            message: "Unknown Error"
         });
         return
     }

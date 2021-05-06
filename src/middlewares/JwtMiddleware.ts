@@ -16,14 +16,18 @@ export const JwtMiddleware = (opt?: JwtMiddlewareOpt): express.RequestHandler[] 
             credentialsRequired: opt?.credentialsRequired !== undefined ? opt.credentialsRequired : true, ex: opt?.ex
         }),
         (req,res,next) => {
-            getLoggedUserData(req.user.id)
-            .then((u) => {
-                if (u) {
-                    //@ts-expect-error
-                    req.user = u
-                }
+            if (!req.user) {
                 next();
-            })
+            } else {
+                getLoggedUserData(req.user.id)
+                .then((u) => {
+                    if (u) {
+                        //@ts-expect-error
+                        req.user = u
+                    }
+                    next();
+                })
+            }
         }
     ]
 }

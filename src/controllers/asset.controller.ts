@@ -3,7 +3,7 @@ import VideoModel from '../models/video.model';
 import { ApiError } from '../utils/ApiError';
 import PictureModel from '../models/picture.model';
 import UserModel, { discountUserToken } from '../models/user.model';
-import { createAssetBought, findBoughtAssetBy } from '../models/AssetBought.model';
+import { createAssetBought, findBoughtAssetBy, FindBoughtAssetByParams } from '../models/AssetBought.model';
 import sequelize from '../utils/DB';
 import { signAwsUrl } from '../utils/AwsS3Client';
 
@@ -22,7 +22,14 @@ export const buyAssetController: express.RequestHandler = async (req, res) => {
         if (!asset) throw new ApiError("Asset not found")
         if (asset.isFree == true || !asset.price) throw new ApiError("This is a free asset")
 
-        const assetsBouhgt = await findBoughtAssetBy({ assetId: asset.id, userId: req.user.id })
+        const assetBoughtParams: FindBoughtAssetByParams = { userId: req.user.id }
+        if (assetType == "VIDEO") {
+            assetBoughtParams.videoId = asset.id
+        }
+        if (assetType == "PICTURE") {
+            assetBoughtParams.pictureId = asset.id
+        }
+        const assetsBouhgt = await findBoughtAssetBy(assetBoughtParams)
         if (assetsBouhgt.length != 0) throw new ApiError("Asset already bought")
 
         const currentUser = await UserModel.findByPk(req.user.id, { transaction: t })

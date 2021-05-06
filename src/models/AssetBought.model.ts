@@ -42,7 +42,8 @@ export const createAssetBought = ({ user, assetId, type }: { user: UserModel, as
     return AssetBought.create({ userId: user.id, [assetProp]: assetId }, { transaction: opt?.t })
 }
 
-export const findBoughtAssetBy = ({ assetId, userId }: { assetId?: string, userId?: string }) => {
+export type FindBoughtAssetByParams = { pictureId?: string, videoId?: string, assetId?: string, userId?: string }
+export const findBoughtAssetBy = ({ assetId, userId, videoId, pictureId }: FindBoughtAssetByParams) => {
     const where: WhereAttributeHash | OrOperator = {}
     if (assetId) {
         where[Op.or as unknown as string] = [
@@ -52,6 +53,12 @@ export const findBoughtAssetBy = ({ assetId, userId }: { assetId?: string, userI
     }
     if (userId) {
         where.userId = userId
+    }
+    if (pictureId) {
+        where.pictureId = pictureId
+    }
+    if (videoId) {
+        where.videoId = videoId
     }
     return AssetBought.findAll({ where: where })
 }

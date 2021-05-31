@@ -10,6 +10,7 @@ import * as https from "https"
 import * as http from "http"
 import { seedAppConfig } from './seed/SeedAppConfig';
 import { startSocketServer } from './socketApp';
+import { seedService } from './seed/SeedModelServices';
 const fs = require('fs');
 
 const app = express();
@@ -66,6 +67,7 @@ const bootstrap = () => {
     return sequelize.authenticate()
         .then(() => sequelize.sync())
         .then(() => seedAppConfig())
+        .then(() => seedService())
 }
 
 let httpsServer: null | https.Server = null

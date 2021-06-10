@@ -9,6 +9,7 @@ import { callRoutes } from './call.route';
 import { videoRoutes } from './video.route';
 import { appConfigsRoutes } from './appConfigs.route';
 import { invitationRoute } from './invitation.route';
+import { logRoutes } from './log.route';
 
 export const routes = express();
 
@@ -22,3 +23,4 @@ routes.use("/call",callRoutes)
 routes.use("/video",videoRoutes)
 routes.use("/appConfigs",appConfigsRoutes)
 routes.use("/invitation",invitationRoute)
+routes.use("/log",logRoutes)

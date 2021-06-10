@@ -281,7 +281,7 @@ userRoutes.get('/public/userPerRegion', asyncHandler(async (req, res) => {
 }));
 
 
-userRoutes.get('/public/getUser/:id?', JwtMiddleware({ credentialsRequired: false, ex: 'a' }), asyncHandler(async (req, res) => {
+userRoutes.get('/public/getUser/:id?', JwtMiddleware({ credentialsRequired: false }), asyncHandler(async (req, res) => {
   const user = await UserModel
     .findOne({ where: { id: req.params.id, role: USER_ROLE_ENUM.MODEL },attributes: { exclude: ["password"] }, include: [{ model: PictureModel }, { model: ServiceModel }, { model: VideoModel }, { model: PostModel }] })
   if (!user) throw new ApiError("User not found")

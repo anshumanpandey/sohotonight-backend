@@ -19,6 +19,7 @@ import { RoleCheck } from '../middlewares/RoleCheck';
 import AssetBought from '../models/AssetBought.model';
 import { v4 as uuidv4 } from 'uuid';
 import { userSerializerFactory } from '../serializers/model.serializer';
+import { col, fn, where } from 'sequelize';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -70,7 +71,7 @@ userRoutes.post('/login', validateParams(checkSchema({
 })), asyncHandler(async (req, res) => {
   const { nickname, password } = req.body;
   const user = await UserModel.findOne({
-    where: { nickname },
+    where: where(fn('lower', col('nickname')), nickname.toLowerCase()),
     include: [
       { model: ServiceModel },
       { model: AssetBought },
@@ -207,7 +208,7 @@ userRoutes.post('/register', validateParams(checkSchema({
   if (byNickname) throw new ApiError("Nickname already registered")
 
   const hashedPass = await hash(password, 8)
-  const userData = { password: hashedPass, nickname,emailAddress, ...fields, role: USER_ROLE_ENUM[fields.role.toUpperCase() as USER_ROLE_ENUM] }
+  const userData = { password: hashedPass, nickname: nickname.toLowerCase().trim(), emailAddress: emailAddress.toLowerCase().trim(), ...fields, role: USER_ROLE_ENUM[fields.role.toUpperCase() as USER_ROLE_ENUM] }
   const user = await UserModel.create(userData, { include: [{ model: ServiceModel }, { model: AssetBought }]})
 
   const jsonData = user.toJSON();

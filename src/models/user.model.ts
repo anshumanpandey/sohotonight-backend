@@ -307,6 +307,12 @@ export default class UserModel extends Model {
   })
   authenticationProfilePicIsAuthenticated: boolean
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  resetPasswordToken?: string
+
   @HasMany(() => PostModel)
   Posts: PostModel
 

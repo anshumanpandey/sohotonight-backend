@@ -1,7 +1,6 @@
 import express from 'express';
 import asyncHandler from "express-async-handler"
 import { ApiError } from '../utils/ApiError';
-import { generateVideoCallToken, responseCall, TWILIO_INTERNAL_NUM } from '../utils/TwilioClient';
 import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import UserModel, { discountUserToken } from '../models/user.model';
 import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
@@ -16,15 +15,6 @@ videoRoutes.get('/invitations', JwtMiddleware(), asyncHandler(async (req, res) =
   let invitations = await getVideoInvitationsByUserInvitatedId({ userId: req.user.id })
   invitations = await updateExpiredInvitations({ invitations })
   res.send(invitations.map(invitationSerializer));
-}));
-
-videoRoutes.post('/generateVideoToken', JwtMiddleware(), asyncHandler(async (req, res) => {
-
-  const p = { identity: req.body.identity, roomName: req.body.roomName }
-  const callToken = await generateVideoCallToken(p)
-  if (!callToken) throw new ApiError("Could not generate token")
-
-  res.send({ token: callToken.toJwt() });
 }));
 
 videoRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({

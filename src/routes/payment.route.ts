@@ -8,6 +8,8 @@ import UserModel from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import sequelize from '../utils/DB';
 import { JwtMiddleware } from '../middlewares/JwtMiddleware';
+import { sendEmail } from '../utils/Mail';
+import { renderHtmlTemaplate, Emailtemplates } from '../utils/renderHtmlTemaplate';
 
 export const paymentRoutes = express();
 
@@ -50,7 +52,13 @@ paymentRoutes.post('/tokensPurchase', JwtMiddleware(), validateParams(checkSchem
     const user = await UserModel.findOne({ where: { id: req.user?.id } })
     if (!user) throw new ApiError("User not found")
 
-    await UserModel.update({ tokensBalance: user.tokensBalance + (config?.pricePerToken || 1) * req.body.amount }, { where: { id: req.user.id }, transaction: t })
+    await UserModel.update({ tokensBalance: user.tokensBalance + ((config?.pricePerToken || 1) * req.body.amount) }, { where: { id: req.user.id }, transaction: t })
+    
+    const html = renderHtmlTemaplate({
+      templateName: Emailtemplates.SuccessTokenBought,
+      values: { tokenAmount: req.body.amount, currentDate: new Date().toUTCString() }
+    })
+    sendEmail({ to: user.emailAddress, html, subject: 'You purchased tokens'})
   })
 
   res.send({ success: 'Payment Created' });

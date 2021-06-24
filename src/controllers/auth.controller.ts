@@ -3,11 +3,9 @@ import { sendEmail } from '../utils/Mail';
 import { getUsersBy } from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import { hash } from "bcrypt"
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { getCurrentUrl } from '../utils/getCurrentUrl';
 const generator = require('generate-password');
-const Mustache = require('mustache');
+import { renderHtmlTemaplate, Emailtemplates } from '../utils/renderHtmlTemaplate';
 
 export const startPasswordRecovery = async (req: express.Request<{}, {}, { email: string }>, res: express.Response) => {
     const [u] = await getUsersBy({ emailAddress: req.body.email })
@@ -20,11 +18,10 @@ export const startPasswordRecovery = async (req: express.Request<{}, {}, { email
 
     await u.update({ resetPasswordToken })
 
-    const path = resolve(__dirname, "..", "..", "templates", "RecoverPasswordTemplate.html")
-    const html = readFileSync(path, "utf8")
-
     const verificationUrl = `${getCurrentUrl(req)}/setup-password?code=${resetPasswordToken}`
-    await sendEmail({ subject: 'Recover your SohoTonigh password!', html: Mustache.render(html, { verificationUrl }), to: u.emailAddress })
+    const html = renderHtmlTemaplate({ templateName: Emailtemplates.RecoverPasswordTemplate, values: { verificationUrl } })
+
+    await sendEmail({ subject: 'Recover your SohoTonigh password!', html, to: u.emailAddress })
     res.send({ success: true })
 }
 
@@ -38,9 +35,8 @@ export const completePasswordRecovery = async (req: express.Request<{}, {}, { co
     const hashedPass = await hash(password, 8)
     await u.update({ password: hashedPass, resetPasswordToken: null })
 
-    const path = resolve(__dirname, "..", "..", "templates", "RecoverPasswordSuccessTemplate.html")
-    const html = readFileSync(path, "utf8")
     const currentDate = new Date().toUTCString()
-    await sendEmail({ subject: 'Your SohoTonight password has been reset!', html: Mustache.render(html, { currentDate }), to: u.emailAddress })
+    const html = renderHtmlTemaplate({ templateName: Emailtemplates.RecoverPasswordSuccessTemplate, values: { currentDate } })
+    await sendEmail({ subject: 'Your SohoTonight password has been reset!', html, to: u.emailAddress })
     res.send({ success: true })
 }

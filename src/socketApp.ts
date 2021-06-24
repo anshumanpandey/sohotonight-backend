@@ -4,7 +4,7 @@ import * as jwtSocket from "socketio-jwt"
 import { JWT_SECRET } from "./middlewares/JwtMiddleware"
 import { DefaultEventsMap } from "socket.io/dist/typed-events"
 import InvitationModel, { INVITATION_EVENTS, doHandshake } from "./models/invitation.model"
-import { discountForVideoChat, onChatEnd } from "./controllers/videoChat.controller"
+import * as videoCtr from "./controllers/videoChat.controller"
 import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.model"
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
@@ -12,11 +12,16 @@ import VoiceCallModel, { VOICE_CALL_EVENTS } from "./models/voiceCall.model"
 import { discountForVoiceCall, onVoiceChatEnd } from "./controllers/voiceCall.controller"
 import MessageModel, { MESSAGES_EVENT_ENUM } from "./models/Message.model"
 
+type SockerConnection = socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number }}
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
     [INVITATION_EVENTS.INVITATION_DECLINED]: InvitationModel
     [INVITATION_EVENTS.NEW_VIDEO_INVITATION]: InvitationModel
     [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel,
+    [VIDEO_CHAT_EVENTS.RESUMED_VIDEO_BROADCAST]: VideoModel,
+    [VIDEO_CHAT_EVENTS.STOPPED_VIDEO_BROADCAST]: VideoModel,
+    [VIDEO_CHAT_EVENTS.RESUMED_VIDEO_AUDIO_BROADCAST]: VideoModel,
+    [VIDEO_CHAT_EVENTS.STOPPED_VIDEO_AUDIO_BROADCAST]: VideoModel,
     [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,
     [VOICE_CALL_EVENTS.VOICE_CALL_ENDED]: VoiceCallModel
     [INVITATION_EVENTS.INVITATION_HANDSHAKE]: any
@@ -40,6 +45,10 @@ export const sendNotificatioToUserId = ({ userId, eventName, body }: { userId: s
     conn.emit(eventName, body)
 }
 
+const includeUserData = (conn: SockerConnection) => (cb: any) => {
+    return (e: any) => cb({ ...e, user: conn.decoded_token})
+}
+
 let io = null
 export const startSocketServer = (s: http.Server) => {
     io = new socket.Server(s, {
@@ -55,20 +64,26 @@ export const startSocketServer = (s: http.Server) => {
     }));
 
     //@ts-expect-error
-    io.on('connection', (client: socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number }}) => {
+    io.on('connection', (client: SockerConnection) => {
         storeUserConnection({ userId: client.decoded_token.id, socketConn: client })
+        const authWrapper = includeUserData(client)
 
-        client.on('DISCOUNT_VIDEO_CHAT', (d) => discountForVideoChat({ ...d, user: client.decoded_token }));
-        client.on('VOICE_CALL_ENDED', (d) => discountForVoiceCall({ ...d, user: client.decoded_token }));
-        client.on('END_VIDEO_CHAT', onChatEnd);
+        client.on('DISCOUNT_VIDEO_CHAT', authWrapper(videoCtr.discountForVideoChat));
+        client.on('VOICE_CALL_ENDED', authWrapper(discountForVoiceCall));
+        client.on('END_VIDEO_CHAT', videoCtr.onChatEnd);
         client.on('END_VOICE_CHAT', onVoiceChatEnd);
-        client.on('CONNECTION_HANDSHAKE', (e) => doHandshake({ ...e, user: client.decoded_token }) );
+        client.on('CONNECTION_HANDSHAKE', authWrapper(doHandshake));
+        client.on('STOP_VIDEO_BROADCAST', authWrapper(videoCtr.stopVideoBroadcast));
+        client.on('RESUME_VIDEO_BROADCAST', authWrapper(videoCtr.resumeVideoBroadcast));
+        client.on('STOP_VIDEO_AUDIO_BROADCAST', authWrapper(videoCtr.stopVideoAudioBroadcast));
+        client.on('RESUME_VIDEO_AUDIO_BROADCAST', authWrapper(videoCtr.resumeVideoAudioBroadcast));
+        
         
         client.on('disconnect', () => {
             console.log("disconnected")
             getOngoingVideoChats({ relatedUser: client.decoded_token.id })
             .then(chats => {
-                chats.map(c => onChatEnd(c))
+                chats.map(c => videoCtr.onChatEnd(c))
             })
         });
     });

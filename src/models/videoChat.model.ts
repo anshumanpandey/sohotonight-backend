@@ -7,7 +7,11 @@ import { Logger } from '../utils/Logger';
 import { WhereAttributeHash, OrOperator } from 'sequelize/types';
 
 export enum VIDEO_CHAT_EVENTS {
-  VIDEO_CHAT_ENDED = "VIDEO_CHAT_ENDED"
+  VIDEO_CHAT_ENDED = "VIDEO_CHAT_ENDED",
+  STOPPED_VIDEO_BROADCAST = "STOPPED_VIDEO_BROADCAST",
+  STOPPED_VIDEO_AUDIO_BROADCAST = "STOPPED_VIDEO_AUDIO_BROADCAST",
+  RESUMED_VIDEO_BROADCAST = "RESUMED_VIDEO_BROADCAST",
+  RESUMED_VIDEO_AUDIO_BROADCAST = "RESUMED_VIDEO_AUDIO_BROADCAST",
 }
 
 @Table
@@ -98,4 +102,42 @@ export const videoChatSerializer = (v: VideoChatModel): any => {
     ...videoChat,
     createdBy: publicUserSerializer(v.createdBy)
   }
+}
+
+type SetVideBroadcastParams = { videoChat: any, user: UserModel, broadcast: boolean }
+
+const resolveBroadcastEventFor = (media: "AUDIO" | "VIDEO") => async ({ videoChat, user, broadcast }: SetVideBroadcastParams) => {
+  const [i] = await getInvitationsBy({ id: videoChat.invitationId })
+  let sendTo = i.toUserId
+  if (i.toUserId == user.id) {
+    sendTo = i.createdById
+  }
+
+  let eventName = VIDEO_CHAT_EVENTS.STOPPED_VIDEO_BROADCAST
+  if (media == "VIDEO") {
+    if (broadcast === true) {
+      eventName = VIDEO_CHAT_EVENTS.RESUMED_VIDEO_BROADCAST
+    }
+  } else {
+    eventName = VIDEO_CHAT_EVENTS.STOPPED_VIDEO_AUDIO_BROADCAST
+    if (broadcast === true) {
+      eventName = VIDEO_CHAT_EVENTS.RESUMED_VIDEO_AUDIO_BROADCAST
+    }
+  }
+
+  return {
+    sendTo,
+    eventName,
+    videoChat,
+  }
+}
+
+export const setVideoBroadcast = async (p: SetVideBroadcastParams) => {
+  const { sendTo, eventName, videoChat } = await resolveBroadcastEventFor("VIDEO")(p)
+  sendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat })
+}
+
+export const setVideoAudioBroadcast = async (p: SetVideBroadcastParams) => {
+  const { sendTo, eventName, videoChat } = await resolveBroadcastEventFor("AUDIO")(p)
+  sendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat })
 }

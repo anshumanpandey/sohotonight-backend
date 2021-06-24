@@ -21,7 +21,7 @@ export const startPasswordRecovery = async (req: express.Request<{}, {}, { email
     const verificationUrl = `${getCurrentUrl(req)}/setup-password?code=${resetPasswordToken}`
     const html = renderHtmlTemaplate({ templateName: Emailtemplates.RecoverPasswordTemplate, values: { verificationUrl } })
 
-    await sendEmail({ subject: 'Recover your SohoTonigh password!', html, to: u.emailAddress })
+    await sendEmail({ subject: 'Recover your SohoTonight password!', html, to: u.emailAddress })
     res.send({ success: true })
 }
 

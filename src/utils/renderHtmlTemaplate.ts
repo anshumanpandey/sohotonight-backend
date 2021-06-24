@@ -6,6 +6,7 @@ export enum Emailtemplates {
     RecoverPasswordSuccessTemplate = "RecoverPasswordSuccessTemplate",
     RecoverPasswordTemplate = "RecoverPasswordTemplate",
     SuccessTokenBought = "SuccessTokenBought",
+    NewMessageTemplate = "NewMessageTemplate",
 }
 
 export const renderHtmlTemaplate = ({ templateName , values }: { templateName: Emailtemplates, values: {[k: string]: any }}) => {

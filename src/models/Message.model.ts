@@ -29,13 +29,12 @@ export default class MessageModel extends Model {
   conversation: ConversationModel
 }
 
-export const createMessage = async ({ conversation, createdByUserId, body }: { conversation: ConversationModel, createdByUserId: string, body: string }) => {
-  const m = await MessageModel.create({ conversationId: conversation.id , createdByUserId, body }, { include: [{ model: UserModel }]})
+export const createMessage = async ({ conversation, createdByUser, body }: { conversation: ConversationModel, createdByUser: UserModel, body: string }) => {
+  const m = await MessageModel.create({ conversationId: conversation.id , createdByUserId: createdByUser.id, body }, { include: [{ model: UserModel }]})
 
   const message = await getMessageById(m.id)
   if (!message) throw new ApiError("Could not create messages")
-  
-  sendNotificatioToUserId({ userId: createdByUserId == conversation.toUserId ? conversation.createdByUserId : conversation.toUserId, eventName: MESSAGES_EVENT_ENUM.NEW_MESSAGE, body: message.toJSON() })
+
   return m
 }
 

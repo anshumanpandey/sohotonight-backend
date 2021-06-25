@@ -52,7 +52,7 @@ export default class VideoChatModel extends Model {
   invitation: VideoChatInvitation
 }
 
-export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUser: UserModel }) => {
+export const createVideoRoom = async ({ user, toUser, startWithVoice }: { user: UserModel, toUser: UserModel, startWithVoice: boolean }) => {
 
   //TODO: handle start date on connection
   const v = await VideoChatModel.create({ createdById: user.id })
@@ -60,7 +60,7 @@ export const createVideoRoom = async ({ user, toUser }: { user: UserModel, toUse
   const justCreated = await VideoChatModel.findByPk(v.id, { include: [{ model: UserModel }] })
   if (!justCreated) throw new ApiError("Could not create the room")
 
-  const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser })
+  const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser, startWithVoice })
   v.invitationId = invitation.id
   await v.save()
 

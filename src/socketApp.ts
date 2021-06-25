@@ -8,8 +8,6 @@ import * as videoCtr from "./controllers/videoChat.controller"
 import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.model"
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
-import VoiceCallModel, { VOICE_CALL_EVENTS } from "./models/voiceCall.model"
-import { discountForVoiceCall, onVoiceChatEnd } from "./controllers/voiceCall.controller"
 import MessageModel, { MESSAGES_EVENT_ENUM } from "./models/Message.model"
 
 type SockerConnection = socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number }}
@@ -22,8 +20,6 @@ type EmitEvents = {
     [VIDEO_CHAT_EVENTS.STOPPED_VIDEO_BROADCAST]: VideoModel,
     [VIDEO_CHAT_EVENTS.RESUMED_VIDEO_AUDIO_BROADCAST]: VideoModel,
     [VIDEO_CHAT_EVENTS.STOPPED_VIDEO_AUDIO_BROADCAST]: VideoModel,
-    [INVITATION_EVENTS.NEW_VOICE_INVITATION]: VoiceCallModel,
-    [VOICE_CALL_EVENTS.VOICE_CALL_ENDED]: VoiceCallModel
     [INVITATION_EVENTS.INVITATION_HANDSHAKE]: any
     [MESSAGES_EVENT_ENUM.NEW_MESSAGE]: MessageModel
 }
@@ -69,9 +65,7 @@ export const startSocketServer = (s: http.Server) => {
         const authWrapper = includeUserData(client)
 
         client.on('DISCOUNT_VIDEO_CHAT', authWrapper(videoCtr.discountForVideoChat));
-        client.on('VOICE_CALL_ENDED', authWrapper(discountForVoiceCall));
         client.on('END_VIDEO_CHAT', videoCtr.onChatEnd);
-        client.on('END_VOICE_CHAT', onVoiceChatEnd);
         client.on('CONNECTION_HANDSHAKE', authWrapper(doHandshake));
         client.on('STOP_VIDEO_BROADCAST', authWrapper(videoCtr.stopVideoBroadcast));
         client.on('RESUME_VIDEO_BROADCAST', authWrapper(videoCtr.resumeVideoBroadcast));

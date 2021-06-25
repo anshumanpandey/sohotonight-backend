@@ -7,6 +7,7 @@ import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/v
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
 import { getVideoInvitationsByUserInvitatedId, invitationSerializer, updateExpiredInvitations } from '../models/invitation.model';
+import { createVideoChat } from '../controllers/videoChat.controller';
 
 export const videoRoutes = express();
 
@@ -23,27 +24,12 @@ videoRoutes.post('/create', JwtMiddleware(), validateParams(checkSchema({
     exists: {
       errorMessage: 'Missing field'
     },
-    isEmpty: {
-      errorMessage: 'Missing field',
-      negated: true
-    },
-    trim: true
+  },
+  startWithVoice: {
+    in: ['body'],
+    isBoolean: true
   }
-})), asyncHandler(async (req, res) => {
-  const [u, toUser] = await Promise.all([
-    UserModel.findByPk(req.user.id),
-    UserModel.findOne({ where: { nickname: req.body.toUserNickname }})
-  ])
-  if (!u) throw new ApiError("User not found")
-  if (u.tokensBalance <= 0) throw new ApiError("User has no tokens to start a video chat")
-  if (!toUser) throw new ApiError("User to call not found")
-  if (u.id == toUser.id) throw new ApiError("Cannot create call to itself")
-
-  const p = { user: u, toUser }
-  const invitation = await createVideoRoom(p)
-
-  res.send(invitation);
-}));
+})), asyncHandler(createVideoChat));
 
 
 videoRoutes.post('/discount', JwtMiddleware(), asyncHandler(async (req, res) => {

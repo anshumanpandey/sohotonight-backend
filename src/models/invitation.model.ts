@@ -4,7 +4,6 @@ import { differenceInSeconds } from 'date-fns'
 import VideoChatModel, { videoChatSerializer } from './videoChat.model';
 import UserModel, { publicUserSerializer } from './user.model';
 import { ApiError } from '../utils/ApiError';
-import VoiceCallModel from './voiceCall.model';
 import { WhereAttributeHash } from 'sequelize/types';
 import { sendNotificatioToUserId } from '../socketApp';
 
@@ -17,7 +16,6 @@ export enum INVITATION_RESPONSE_ENUM {
 
 export enum INVITATION_TYPE {
   VIDEO_CHAT = "VIDEO_CHAT",
-  VOICE_CALL = "VOICE_CALL",
 }
 
 export enum INVITATION_EVENTS {
@@ -26,6 +24,14 @@ export enum INVITATION_EVENTS {
   INVITATION_ACCEPTED = "INVITATION_ACCEPTED",
   INVITATION_DECLINED = "INVITATION_DECLINED",
   INVITATION_HANDSHAKE = "INVITATION_HANDSHAKE",
+}
+
+type InvitationCreationParams = {
+  toUserId: string
+  senderUuid: string
+  receiverUuid: string
+  videoChatId: string
+  startWithVoice: boolean
 }
 
 @Table
@@ -37,20 +43,14 @@ export default class InvitationModel extends Model {
   @BelongsTo(() => VideoChatModel)
   videoChat: VideoChatModel
 
-  @ForeignKey(() => VoiceCallModel)
-  @Column
-  voiceCallId: number
-  @BelongsTo(() => VoiceCallModel)
-  voiceCall: VoiceCallModel
-
   @ForeignKey(() => UserModel)
   @Column
   toUserId: number
   @BelongsTo(() => UserModel)
   toUser: UserModel
 
-  @Column({ allowNull: false })
-  invitationType: INVITATION_TYPE
+  @Column({ defaultValue: false })
+  startWithVoice: boolean
 
   @Column({
     type: DataType.STRING(2000),
@@ -71,11 +71,7 @@ export default class InvitationModel extends Model {
   responseFromUser: INVITATION_RESPONSE_ENUM
 
   get createdById() {
-    if (this.videoChat){
-      return this.videoChat.createdById
-    }
-
-    return this.voiceCall.createdById
+    return this.videoChat.createdById
   }
 }
 
@@ -103,17 +99,11 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
       where,
       include: [
         { model: VideoChatModel, where: chatWhere, required: false, include: [{ model: UserModel, required: true }] },
-        { model: VoiceCallModel, where: chatWhere, required: false, include: [{ model: UserModel, required: true }] },
       ]
     })
 
   invitations = invitations.map(i => {
-    if (i.videoChat) {
-      i.videoChat.invitation = i
-    }
-    if (i.voiceCall) {
-      i.voiceCall.invitation = i
-    }
+    i.videoChat.invitation = i
     return i
   })
 
@@ -138,7 +128,7 @@ export const updateExpiredInvitations = async ({ invitations }: { invitations: I
 
   const expiredInvitations = evaluatedInvitations
     .filter(i => i.responseFromUser == INVITATION_RESPONSE_ENUM.EXPIRED)
-    .map(i => ({ id: i.id, responseFromUser: i.responseFromUser, invitationType: i.invitationType, senderUuid: i.senderUuid, receiverUuid: i.receiverUuid }))
+    .map(i => ({ id: i.id, responseFromUser: i.responseFromUser, senderUuid: i.senderUuid, receiverUuid: i.receiverUuid }))
   await InvitationModel.bulkCreate(expiredInvitations, { updateOnDuplicate: ["responseFromUser"] })
 
   return evaluatedInvitations.filter(i => i.responseFromUser == INVITATION_RESPONSE_ENUM.WAITING_RESPONSE)
@@ -154,34 +144,22 @@ export const getAcceptedInvitations = async ({ userId }: { userId: string }) => 
   .then(i => i.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime()))
 }
 
-export const getVoiceInvitationsByUserInvitatedId = async ({ userId }: { userId: string }) => {
-  return getInvitationsBy({ toUserId: userId, invitationType: INVITATION_TYPE.VOICE_CALL})
-}
-
-export const sendVideoInvitationTo = async ({ toUser, callObj }: { toUser: UserModel, callObj: VideoChatModel | VoiceCallModel }) => {
+type SendVideoInvitationToParams = { toUser: UserModel, callObj: VideoChatModel, startWithVoice: boolean }
+export const sendVideoInvitationTo = async ({ toUser, callObj, startWithVoice = false }: SendVideoInvitationToParams) => {
   const senderUuid = uuidv4();
   const receiverUuid = uuidv4();
 
   let invitationEvent = INVITATION_EVENTS.NEW_VIDEO_INVITATION
 
-  const invitationData: any = {
+  const invitationData: InvitationCreationParams = {
     toUserId: toUser.id,
     senderUuid,
-    receiverUuid
+    receiverUuid,
+    startWithVoice,
+    videoChatId: callObj.id
   }
 
-  if (callObj instanceof VideoChatModel) {
-    invitationData.videoChatId = callObj.id
-    invitationData.invitationType = INVITATION_TYPE.VIDEO_CHAT
-  } else if (callObj instanceof VoiceCallModel) {
-    invitationData.voiceCallId = callObj.id  
-    invitationData.invitationType = INVITATION_TYPE.VOICE_CALL
-    invitationEvent = INVITATION_EVENTS.NEW_VOICE_INVITATION
-  } else {
-    throw new ApiError('Could not create the invitation')
-  }
-
-  const [inv] = await getInvitationsBy({ toUserId: toUser.id, invitationType: invitationData.invitationType, responseFromUser: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, sortByNewest: true })
+  const [inv] = await getInvitationsBy({ toUserId: toUser.id, responseFromUser: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, sortByNewest: true })
   if (inv && invitationIsExpired(inv) === false) throw new ApiError("Invitation already sended")
 
   const i = await InvitationModel.create(invitationData)
@@ -221,8 +199,7 @@ export const doHandshake = async ({ invitation: i, handshake, user }:{ handshake
 export const invitationSerializer = (i: InvitationModel) => {
   return {
     ...i.toJSON(),
-    userTo: publicUserSerializer((i.videoChat || i.voiceCall).createdBy),
+    userTo: publicUserSerializer(i.videoChat.createdBy),
     videoChat: i.videoChat ? videoChatSerializer(i.videoChat) : null,
-    voiceCall: i.voiceCall ? i.voiceCall.toJSON() : null
   }
 }

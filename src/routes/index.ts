@@ -5,7 +5,6 @@ import { postRoutes } from './post.route';
 import { serviceRoutes } from './services.route';
 import { userRoutes } from './user.route';
 import { messagesRoute } from './messages.route';
-import { callRoutes } from './call.route';
 import { videoRoutes } from './video.route';
 import { appConfigsRoutes } from './appConfigs.route';
 import { invitationRoute } from './invitation.route';
@@ -20,7 +19,6 @@ routes.use("/payment",paymentRoutes)
 routes.use("/assets",assetsRoutes)
 routes.use("/services",serviceRoutes)
 routes.use("/chat",messagesRoute)
-routes.use("/call",callRoutes)
 routes.use("/video",videoRoutes)
 routes.use("/appConfigs",appConfigsRoutes)
 routes.use("/invitation",invitationRoute)

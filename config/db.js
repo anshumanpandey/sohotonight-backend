@@ -1,0 +1,26 @@
+const path = require('path');
+
+module.exports = {
+  development: {
+    storage: path.join(__dirname, '..', 'sohonight.sqlite'),
+    dialect: 'sqlite',
+  },
+  test: {
+    username: process.env.CI_DB_USERNAME,
+    password: process.env.CI_DB_PASSWORD,
+    database: process.env.CI_DB_NAME,
+    host: '127.0.0.1',
+    port: 3306,
+    dialect: 'mysql',
+    dialectOptions: {
+      bigNumberStrings: true
+    }
+  },
+  production: {
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.PROD_DB_HOSTNAME,
+    dialect: process.env.DB_DIALECT,
+  }
+};

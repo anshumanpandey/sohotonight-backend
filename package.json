@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc",
+    "build": "rm --fr dist/ && tsc",
     "start": "node ./dist/index.js",
     "dev": "TS_NODE_FILES=1 TS_NODE_PROJECT='./tsconfig.json' ts-node ./src"
   },

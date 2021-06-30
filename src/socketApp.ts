@@ -14,6 +14,7 @@ type SockerConnection = socket.Socket<DefaultEventsMap, DefaultEventsMap> & { de
 type EmitEvents = {
     [INVITATION_EVENTS.INVITATION_ACCEPTED]: InvitationModel
     [INVITATION_EVENTS.INVITATION_DECLINED]: InvitationModel
+    [INVITATION_EVENTS.INVITATION_CANCELLED]: InvitationModel
     [INVITATION_EVENTS.NEW_VIDEO_INVITATION]: InvitationModel
     [VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED]: VideoModel,
     [VIDEO_CHAT_EVENTS.RESUMED_VIDEO_BROADCAST]: VideoModel,

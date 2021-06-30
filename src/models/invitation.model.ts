@@ -12,6 +12,7 @@ export enum INVITATION_RESPONSE_ENUM {
   REJECTED = "REJECTED",
   ACCEPTED = "ACCEPTED",
   EXPIRED = "EXPIRED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum INVITATION_TYPE {
@@ -19,10 +20,10 @@ export enum INVITATION_TYPE {
 }
 
 export enum INVITATION_EVENTS {
-  NEW_VOICE_INVITATION = "NEW_VOICE_INVITATION",
   NEW_VIDEO_INVITATION = "NEW_VIDEO_INVITATION",
   INVITATION_ACCEPTED = "INVITATION_ACCEPTED",
   INVITATION_DECLINED = "INVITATION_DECLINED",
+  INVITATION_CANCELLED = "INVITATION_CANCELLED",
   INVITATION_HANDSHAKE = "INVITATION_HANDSHAKE",
 }
 
@@ -168,21 +169,28 @@ export const sendVideoInvitationTo = async ({ toUser, callObj, startWithVoice = 
   return i
 }
 
-export const acceptInvitation = async ({ invitationId }: { invitationId: string }) => {
-  const [invitation] = await getInvitationsBy({ id: invitationId })
-  if (!invitation) throw new ApiError("Invitation not found")
+export const updateInvitationByUserAction = async ({ invitation, action }: { invitation: InvitationModel, action: INVITATION_RESPONSE_ENUM }) => {
 
-  invitation.responseFromUser = INVITATION_RESPONSE_ENUM.ACCEPTED
-  await invitation.save()
-  sendNotificatioToUserId({ userId: invitation.createdById, eventName: INVITATION_EVENTS.INVITATION_ACCEPTED, body: invitationSerializer(invitation) })
-}
+  const invitationNotificationDict: Partial<Record<INVITATION_RESPONSE_ENUM, { sendTo: number, eventToSend: INVITATION_EVENTS }>> = {
+    [INVITATION_RESPONSE_ENUM.REJECTED]: {
+      sendTo: invitation.createdById,
+      eventToSend: INVITATION_EVENTS.INVITATION_DECLINED
+    },
+    [INVITATION_RESPONSE_ENUM.ACCEPTED]: {
+      sendTo: invitation.createdById,
+      eventToSend: INVITATION_EVENTS.INVITATION_ACCEPTED
+    },
+    [INVITATION_RESPONSE_ENUM.CANCELLED]: {
+      sendTo: invitation.toUserId,
+      eventToSend: INVITATION_EVENTS.INVITATION_CANCELLED
+    },
+  }
 
-export const declineInvitation = async ({ invitationId }: { invitationId: string }) => {
-  const [invitation] = await getInvitationsBy({ id: invitationId })
-  if (!invitation) throw new ApiError("Invitation not found")
-
-  await invitation.update({ responseFromUser: INVITATION_RESPONSE_ENUM.REJECTED })
-  sendNotificatioToUserId({ userId: invitation.createdById, eventName: INVITATION_EVENTS.INVITATION_DECLINED, body: invitationSerializer(invitation) })
+  await invitation.update({ responseFromUser: action })
+  const eventData = invitationNotificationDict[action]
+  if (eventData) {
+    sendNotificatioToUserId({ userId: eventData.sendTo, eventName: eventData.eventToSend, body: invitationSerializer(invitation) })
+  }
 }
 
 export const doHandshake = async ({ invitation: i, handshake, user }:{ handshake: any, invitation: InvitationModel, user: UserModel }) => {

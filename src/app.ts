@@ -65,7 +65,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 const bootstrap = () => {
     return sequelize.authenticate()
-        .then(() => sequelize.sync())
+        //.then(() => sequelize.sync())
         .then(() => seedAppConfig())
         .then(() => seedService())
 }

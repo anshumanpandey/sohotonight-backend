@@ -93,10 +93,6 @@ module.exports = {
         type: Sequelize.STRING(2000),
         allowNull: false
       },
-      receiverUuid: {
-        type: Sequelize.STRING,
-        defaultValue: "WAITING_RESPONSE"
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

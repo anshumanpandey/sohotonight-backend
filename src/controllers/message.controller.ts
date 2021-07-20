@@ -1,6 +1,6 @@
 import { getConversationBy, createConversation as createChat } from "../models/Conversation.model"
 import express from 'express';
-import { createMessage, MESSAGES_EVENT_ENUM } from "../models/Message.model";
+import MessageModel, { createMessage, MESSAGES_EVENT_ENUM } from "../models/Message.model";
 import { sendNotificatioToUserId } from "../socketApp";
 import { getUsersBy, USER_ROLE_ENUM } from "../models/user.model";
 import { renderHtmlTemaplate, Emailtemplates } from "../utils/renderHtmlTemaplate";
@@ -31,4 +31,11 @@ export const createMessageController = async (req: express.Request<{}, {}, { con
         sendEmail({ to: modelToNotificate.emailAddress, subject: 'New message on SohoTonight', html })
     }
     res.send(c)
+}
+
+export const markChatAsReaded = async (req: express.Request<{}, {}, { conversationId: string, body: string }>, res: express.Response) => {
+    const [conversation] = await getConversationBy({ id: req.body.conversationId })
+    await MessageModel.bulkCreate(conversation.messages.map(m => ({ id: m.id, readed: true, body: "" })), { updateOnDuplicate: ["readed"] })
+    const [newConversation] = await getConversationBy({ id: req.body.conversationId })
+    res.send(newConversation)
 }

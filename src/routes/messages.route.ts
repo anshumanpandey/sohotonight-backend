@@ -4,7 +4,7 @@ import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { getConversations, createConversation } from '../controllers/conversation.controller';
 import { validateParams } from '../middlewares';
 import { checkSchema } from 'express-validator';
-import { createMessageController } from '../controllers/message.controller';
+import { createMessageController, markChatAsReaded } from '../controllers/message.controller';
 
 export const messagesRoute = express();
 
@@ -54,3 +54,15 @@ messagesRoute.post('/message',
     },
   })),
   asyncHandler(createMessageController))
+
+messagesRoute.post('/readed',
+  JwtMiddleware(),
+  validateParams(checkSchema({
+    conversationId: {
+      in: ['body'],
+      exists: {
+        errorMessage: 'Missing field'
+      },
+    },
+  })),
+  asyncHandler(markChatAsReaded))

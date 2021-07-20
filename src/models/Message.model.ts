@@ -1,7 +1,6 @@
 import { Table, Column, Model, DataType, HasMany, ForeignKey, BelongsTo } from 'sequelize-typescript'
 import UserModel from './user.model'
 import ConversationModel from './Conversation.model'
-import { sendNotificatioToUserId } from '../socketApp'
 import { ApiError } from '../utils/ApiError'
 
 export enum MESSAGES_EVENT_ENUM {
@@ -16,6 +15,12 @@ export default class MessageModel extends Model {
     allowNull: false,
   })
   body: string
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  readed: boolean
 
   @ForeignKey(() => UserModel)
   createdByUserId: string
@@ -35,10 +40,10 @@ export const createMessage = async ({ conversation, createdByUser, body }: { con
   const message = await getMessageById(m.id)
   if (!message) throw new ApiError("Could not create messages")
 
-  return m
+  return message
 }
 
 const getMessageById = async (id: string) => {
-  const m = await MessageModel.findByPk(id,{ include: [{ model: UserModel }]})
+  const m = await MessageModel.findByPk(id,{ include: [{ model: UserModel, required: true }]})
   return m
 }

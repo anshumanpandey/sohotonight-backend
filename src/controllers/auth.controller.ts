@@ -3,7 +3,7 @@ import { sendEmail } from '../utils/Mail';
 import { getUsersBy } from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import { hash } from "bcrypt"
-import { getCurrentUrl } from '../utils/getCurrentUrl';
+import { getFrontEndUrl } from '../utils/getFrontEndUrl';
 const generator = require('generate-password');
 import { renderHtmlTemaplate, Emailtemplates } from '../utils/renderHtmlTemaplate';
 
@@ -18,7 +18,7 @@ export const startPasswordRecovery = async (req: express.Request<{}, {}, { email
 
     await u.update({ resetPasswordToken })
 
-    const verificationUrl = `${getCurrentUrl(req)}/setup-password?code=${resetPasswordToken}`
+    const verificationUrl = `${getFrontEndUrl()}/setup-password?code=${resetPasswordToken}`
     const html = renderHtmlTemaplate({ templateName: Emailtemplates.RecoverPasswordTemplate, values: { verificationUrl } })
 
     await sendEmail({ subject: 'Recover your SohoTonight password!', html, to: u.emailAddress })

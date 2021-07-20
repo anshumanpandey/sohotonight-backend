@@ -36,8 +36,10 @@ export const getConversationBy = async ({ implicatedUserId, toUserId, createdByU
   if (createdByUserId !== undefined) {
     by.createdByUserId = createdByUserId
   }
+
+  const userAttributes = ["id","profilePic", "nickname", "role"]
   
-  const c = await ConversationModel.findAll({ where: by, include: [{ model: UserModel, as: "toUser" }, { model: UserModel, as: "createdByUser" },{ model: MessageModel, include: [{ model: UserModel }] }] })
+  const c = await ConversationModel.findAll({ where: by, include: [{ model: UserModel, as: "toUser", attributes: userAttributes }, { model: UserModel, as: "createdByUser", attributes: userAttributes },{ model: MessageModel, include: [{ model: UserModel }] }] })
 
   return c.map(c => {
     c.messages = c.messages.sort((a,b) => a.createdAt.getTime() - b.createdAt.getTime())

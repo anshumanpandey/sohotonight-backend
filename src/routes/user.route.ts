@@ -80,7 +80,7 @@ userRoutes.post('/login', validateParams(checkSchema({
   });
 
   if (!user) throw new ApiError("User not found")
-  if (!await compare(password, user.password)) throw new ApiError("Email or password incorrect")
+  if (!await compare(password, user.password)) throw new ApiError("Username or password incorrect")
 
   await user.update({ isLogged: true })
   const jsonData = user.toJSON();

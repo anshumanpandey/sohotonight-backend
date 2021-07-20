@@ -293,11 +293,15 @@ userRoutes.get('/public/getUser/:id?', JwtMiddleware({ credentialsRequired: fals
   res.send(await userSerializerFactory({ req, user: response }));
 }));
 
-userRoutes.get('/public/getUsers', asyncHandler(async (req, res) => {
-  res.send(await getModels());
+userRoutes.get('/public/getUsers', JwtMiddleware({ credentialsRequired: false }), asyncHandler(async (req, res) => {
+  const exclude = []
+  if (req.user?.id) {
+    exclude.push(req.user.id)
+  }
+  res.send(await getModels({ exclude }));
 }));
 
-userRoutes.get('/getUser', JwtMiddleware(),asyncHandler(async (req, res) => {
+userRoutes.get('/getUser', JwtMiddleware(), asyncHandler(async (req, res) => {
   const u = await UserModel.findByPk(req.user.id,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] })
   res.send(u);
 }));

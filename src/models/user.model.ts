@@ -379,8 +379,18 @@ export const publicUserSerializer = (u: UserModel) => {
   return userData
 }
 
-export const getModels = () => {
-  return UserModel.findAll({ where: { [Op.not]: { role: USER_ROLE_ENUM.USER }},attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] })
+type GetModelsParams = { exclude?: string[] }
+export const getModels = (opt?: GetModelsParams) => {
+  const where: WhereAttributeHash = {
+    role: {
+      [Op.not]: USER_ROLE_ENUM.USER
+    }
+  }
+  if (opt?.exclude) {
+    const idToFilter = opt.exclude.filter(i => i !== null && i !== undefined)
+    where.id = { [Op.not]: idToFilter }
+  }
+  return UserModel.findAll({ where,attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] })
 }
 
 export const getLoggedUserData = async (userId: string) => {

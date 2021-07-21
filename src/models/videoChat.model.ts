@@ -107,7 +107,8 @@ export const videoChatSerializer = (v: VideoChatModel): any => {
 type SetVideBroadcastParams = { videoChat: any, user: UserModel, broadcast: boolean }
 
 const resolveBroadcastEventFor = (media: "AUDIO" | "VIDEO") => async ({ videoChat, user, broadcast }: SetVideBroadcastParams) => {
-  const [i] = await getInvitationsBy({ id: videoChat.invitationId })
+  const [i, ...all] = await getInvitationsBy({ id: videoChat.invitationId })
+  console.log({ all })
   Logger.info(`toUserId: ${i.toUserId}`)
   Logger.info(`createdById: ${i.createdById}`)
   

@@ -62,6 +62,7 @@ export const createVideoRoom = async ({ user, toUser, startWithVoice }: { user: 
 
   const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser, startWithVoice })
   v.invitationId = invitation.id
+  v.setDataValue("invitationId", invitation.id)
   await v.save()
   console.log({ invitationSerialized: invitationSerializer(invitation) })
   sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: invitationSerializer(invitation) })

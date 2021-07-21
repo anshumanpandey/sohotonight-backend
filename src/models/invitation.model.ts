@@ -164,7 +164,7 @@ export const sendVideoInvitationTo = async ({ toUser, callObj, startWithVoice = 
 
   const i = await InvitationModel.create(invitationData)
   const invitation = await getInvitationsBy({ id: i.id })
-  return i
+  return invitation[0]
 }
 
 export const updateInvitationByUserAction = async ({ invitation, action }: { invitation: InvitationModel, action: INVITATION_RESPONSE_ENUM }) => {

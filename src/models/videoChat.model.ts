@@ -63,6 +63,7 @@ export const createVideoRoom = async ({ user, toUser, startWithVoice }: { user: 
   const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser, startWithVoice })
   v.invitationId = invitation.id
   await v.save()
+  console.log({ invitationSerialized: invitationSerializer(invitation) })
   sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: invitationSerializer(invitation) })
 
   return invitation
@@ -108,7 +109,7 @@ export const videoChatSerializer = (v: VideoChatModel): any => {
 type SetVideBroadcastParams = { videoChat: any, user: UserModel, broadcast: boolean }
 
 const resolveBroadcastEventFor = (media: "AUDIO" | "VIDEO") => async ({ videoChat, user, broadcast }: SetVideBroadcastParams) => {
-  const [i, ...all] = await getInvitationsBy({ id: videoChat.invitationId })
+  const [i] = await getInvitationsBy({ id: videoChat.invitationId })
   
   let sendTo = i.toUserId
   if (i.toUserId == user.id) {
@@ -136,7 +137,6 @@ const resolveBroadcastEventFor = (media: "AUDIO" | "VIDEO") => async ({ videoCha
 
 export const setVideoBroadcast = async (p: SetVideBroadcastParams) => {
   const { sendTo, eventName, videoChat } = await resolveBroadcastEventFor("VIDEO")(p)
-  console.log({ userId: sendTo, eventName, body: videoChat })
   sendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat })
 }
 

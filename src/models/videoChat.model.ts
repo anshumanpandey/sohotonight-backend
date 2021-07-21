@@ -108,6 +108,9 @@ type SetVideBroadcastParams = { videoChat: any, user: UserModel, broadcast: bool
 
 const resolveBroadcastEventFor = (media: "AUDIO" | "VIDEO") => async ({ videoChat, user, broadcast }: SetVideBroadcastParams) => {
   const [i] = await getInvitationsBy({ id: videoChat.invitationId })
+  Logger.info(`invitation: ${JSON.stringify(i.toJSON())}`)
+  Logger.info(`createdById: ${i.createdById}`)
+  
   let sendTo = i.toUserId
   if (i.toUserId == user.id) {
     sendTo = i.createdById

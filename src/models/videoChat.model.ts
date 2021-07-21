@@ -65,7 +65,7 @@ export const createVideoRoom = async ({ user, toUser, startWithVoice }: { user: 
   await v.save()
   const serialized = invitationSerializer(invitation)
   serialized.videoChat.invitationId = invitation.id
-  sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: invitationSerializer(invitation) })
+  sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: serialized })
 
   return invitation
 }

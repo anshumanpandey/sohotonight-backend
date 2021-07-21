@@ -2,12 +2,15 @@ import express from 'express';
 import UserModel, { discountUserToken } from "../models/user.model"
 import { ApiError } from "../utils/ApiError"
 import * as VideoModel from "../models/videoChat.model"
+import { Logger } from '../utils/Logger';
 
 export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: string, startWithVoice?: boolean }> = async (req, res) => {
     const [u, toUser] = await Promise.all([
       UserModel.findByPk(req.user.id),
       UserModel.findOne({ where: { nickname: req.body.toUserNickname }})
     ])
+    Logger.info(`createVideoChat toUserId: ${toUser?.id}`)
+
     if (!u) throw new ApiError("User not found")
     if (u.tokensBalance <= 0) throw new ApiError("User has no tokens to start a video chat")
     if (!toUser) throw new ApiError("User to call not found")

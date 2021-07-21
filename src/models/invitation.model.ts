@@ -77,7 +77,7 @@ export default class InvitationModel extends Model {
 }
 
 type InvitationByParams = { id?: string,toUserId?: string, invitationType: INVITATION_TYPE, responseFromUser?: INVITATION_RESPONSE_ENUM.WAITING_RESPONSE, createdById: string, sortByNewest?: boolean }
-export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams>) => {
+export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams>): Promise<InvitationModel[]> => {
   const where: WhereAttributeHash = {}
   if (by.invitationType) {
     where.invitationType = by.invitationType

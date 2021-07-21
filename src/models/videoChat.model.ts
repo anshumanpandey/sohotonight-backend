@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType, BelongsTo, BelongsToMany, ForeignKey, HasMany, HasOne } from 'sequelize-typescript'
 import UserModel, { publicUserSerializer } from './user.model'
 import { ApiError } from '../utils/ApiError';
-import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo, INVITATION_TYPE, invitationSerializer, getInvitationsBy } from './invitation.model';
+import VideoChatInvitation, { INVITATION_RESPONSE_ENUM, sendVideoInvitationTo, INVITATION_TYPE, invitationSerializer, getInvitationsBy, INVITATION_EVENTS } from './invitation.model';
 import { sendNotificatioToUserId } from '../socketApp';
 import { Logger } from '../utils/Logger';
 import { WhereAttributeHash, OrOperator } from 'sequelize/types';
@@ -63,6 +63,7 @@ export const createVideoRoom = async ({ user, toUser, startWithVoice }: { user: 
   const invitation = await sendVideoInvitationTo({ callObj: v, toUser: toUser, startWithVoice })
   v.invitationId = invitation.id
   await v.save()
+  sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: invitationSerializer(invitation) })
 
   return invitation
 }

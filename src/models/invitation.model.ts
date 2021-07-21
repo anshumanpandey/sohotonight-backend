@@ -166,7 +166,7 @@ export const sendVideoInvitationTo = async ({ toUser, callObj, startWithVoice = 
 
   const i = await InvitationModel.create(invitationData)
   const invitation = await getInvitationsBy({ id: i.id })
-  console.log({ invitation })
+  console.log({ invitation: invitation[0].toJSON() })
   sendNotificatioToUserId({ userId: toUser.id, eventName: invitationEvent, body: invitationSerializer(invitation[0]) })
   return i
 }

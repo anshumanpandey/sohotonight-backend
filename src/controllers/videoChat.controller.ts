@@ -9,7 +9,6 @@ export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: s
       UserModel.findByPk(req.user.id),
       UserModel.findOne({ where: { nickname: req.body.toUserNickname }})
     ])
-    Logger.info(`createVideoChat toUserId: ${toUser?.id}`)
 
     if (!u) throw new ApiError("User not found")
     if (u.tokensBalance <= 0) throw new ApiError("User has no tokens to start a video chat")

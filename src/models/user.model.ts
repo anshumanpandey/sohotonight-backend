@@ -11,6 +11,9 @@ import VideoChatModel from './videoChat.model';
 import { WhereAttributeHash } from 'sequelize/types';
 import { Logger } from '../utils/Logger';
 import AssetBought from './AssetBought.model';
+import emitter from 'eventemitter3';
+
+export const UserEventEmitter = new emitter()
 
 export enum USER_ROLE_ENUM {
   MODEL = "MODEL",
@@ -396,4 +399,25 @@ export const getModels = (opt?: GetModelsParams) => {
 export const getLoggedUserData = async (userId: string) => {
   const u = await UserModel.findByPk(userId,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] })
   return u
+}
+
+export const waitTillUserLogout = () => {
+  const eventName = 'user-logout'
+  return new Promise((resolve) => {
+    const tick = setTimeout(() => {
+      UserEventEmitter.removeListener(eventName)
+      resolve()
+    }, 1000)
+
+    UserEventEmitter.on(eventName, (e) => {
+      if (e.userId) {
+        clearTimeout(tick)
+        UserModel.update({ isLogged: true }, { where: { id: e.userId }})
+        .then(() => {
+          resolve()
+          UserEventEmitter.removeListener(eventName)
+        })
+      }
+    });
+  });
 }

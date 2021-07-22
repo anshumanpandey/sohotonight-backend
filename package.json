@@ -31,6 +31,7 @@
     "cors": "^2.8.5",
     "date-fns": "^2.19.0",
     "dotenv": "^8.2.0",
+    "eventemitter3": "^4.0.7",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "express-jwt": "^6.0.0",

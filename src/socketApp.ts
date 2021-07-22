@@ -9,6 +9,7 @@ import { VIDEO_CHAT_EVENTS, getOngoingVideoChats } from "./models/videoChat.mode
 import VideoModel from "./models/video.model"
 import { Logger } from "./utils/Logger"
 import MessageModel, { MESSAGES_EVENT_ENUM } from "./models/Message.model"
+import { AUTH_EVENTS } from "./controllers/auth.controller"
 
 type SockerConnection = socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number }}
 type EmitEvents = {
@@ -23,6 +24,7 @@ type EmitEvents = {
     [VIDEO_CHAT_EVENTS.STOPPED_VIDEO_AUDIO_BROADCAST]: VideoModel,
     [INVITATION_EVENTS.INVITATION_HANDSHAKE]: any
     [MESSAGES_EVENT_ENUM.NEW_MESSAGE]: MessageModel
+    [AUTH_EVENTS.LOGOUT]: any
 }
 const connDictionary = new Map<string | number, socket.Socket<EmitEvents, DefaultEventsMap>>()
 

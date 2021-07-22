@@ -7,6 +7,10 @@ import { getFrontEndUrl } from '../utils/getFrontEndUrl';
 const generator = require('generate-password');
 import { renderHtmlTemaplate, Emailtemplates } from '../utils/renderHtmlTemaplate';
 
+export enum AUTH_EVENTS {
+    LOGOUT = "LOGOUT"
+}
+
 export const startPasswordRecovery = async (req: express.Request<{}, {}, { email: string }>, res: express.Response) => {
     const [u] = await getUsersBy({ emailAddress: req.body.email })
     if (!u) throw new ApiError("Email not found")

@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler"
 import { checkSchema } from "express-validator"
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from "bcrypt"
-import UserModel, {  clearUrlFromAsset, ALLOWED_ROLE, USER_ROLE_ENUM, getModels } from '../models/user.model';
+import UserModel, {  clearUrlFromAsset, ALLOWED_ROLE, USER_ROLE_ENUM, getModels, UserEventEmitter, waitTillUserLogout } from '../models/user.model';
 import { validateParams } from '../middlewares/routeValidation.middleware';
 import { ApiError } from '../utils/ApiError';
 import multer from 'multer';
@@ -20,6 +20,8 @@ import AssetBought from '../models/AssetBought.model';
 import { v4 as uuidv4 } from 'uuid';
 import { userSerializerFactory } from '../serializers/model.serializer';
 import { col, fn, where } from 'sequelize';
+import { sendNotificatioToUserId } from '../socketApp';
+import { AUTH_EVENTS } from '../controllers/auth.controller';
 
 const upload = GenerateUploadMiddleware({ folderPath: "pictures" })
 const uploadVideo = GenerateUploadMiddleware({ type: 'video', folderPath: 'videos' })
@@ -42,6 +44,7 @@ const storage = GetMulterCloudnaryStorage({
 })
 
 const profileFiles = multer({ storage, limits: { fieldSize } })
+
 
 export const userRoutes = express();
 
@@ -82,7 +85,15 @@ userRoutes.post('/login', validateParams(checkSchema({
   if (!user) throw new ApiError("User not found")
   if (!await compare(password, user.password)) throw new ApiError("Username or password incorrect")
 
-  await user.update({ isLogged: true })
+  let loggedStatePromise: Promise<any> = Promise.resolve()
+  if (user.isLogged === true) {
+    sendNotificatioToUserId({ userId: user.id, eventName: AUTH_EVENTS.LOGOUT, body: {} })
+    loggedStatePromise = waitTillUserLogout()
+  } else {
+    loggedStatePromise = user.update({ isLogged: true })
+  }
+
+  await loggedStatePromise
   const jsonData = user.toJSON();
   //@ts-ignore
   delete jsonData.password;
@@ -92,6 +103,9 @@ userRoutes.post('/login', validateParams(checkSchema({
 
 userRoutes.post('/logout', JwtMiddleware(), asyncHandler(async (req, res) => {
   await UserModel.update({ isLogged: false }, { where: { id: req.user.id }})
+  if (req.body?.reason === "DUPLICATED_SESSION") {
+    UserEventEmitter.emit('user-logout', { userId: req.user.id });
+  }
   res.send({ success: true  });
 }));
 

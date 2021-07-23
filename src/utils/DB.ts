@@ -10,7 +10,10 @@ let SequalizeConfig: SequelizeOptions = {
 
 if (process.env.NODE_ENV === "production") {
   console.log('using dialect')
-  SequalizeConfig = config.production
+  SequalizeConfig = {
+    ...config.production,
+    ...SequalizeConfig
+  }
 } else {
   SequalizeConfig.dialect = 'sqlite',
   SequalizeConfig.storage = path.join(__dirname, '..', '..', 'sohonight.sqlite')

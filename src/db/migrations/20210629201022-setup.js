@@ -9,6 +9,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       pricePerToken: {
         type: Sequelize.FLOAT(2, 2),
@@ -27,6 +28,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -51,6 +53,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       toUserId: {
         type: Sequelize.INTEGER,
@@ -72,6 +75,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       videoChatId: {
         type: Sequelize.INTEGER,
@@ -105,6 +109,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -130,6 +135,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       body: {
         type: Sequelize.STRING(2000),
@@ -155,6 +161,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       transactionId: {
         type: Sequelize.STRING(500),
@@ -177,6 +184,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       price: {
         type: Sequelize.FLOAT({ length: 10, decimals: 2 }),
@@ -208,6 +216,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       body: {
         type: Sequelize.STRING(2000),
@@ -230,6 +239,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       name: {
         type: Sequelize.STRING(255),
@@ -249,6 +259,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       nickname: {
         type: Sequelize.STRING,
@@ -449,6 +460,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       createdAt: {
         allowNull: false,
@@ -464,6 +476,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       createdById: {
         type: Sequelize.INTEGER,
@@ -504,6 +517,7 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
       },
       price: {
         type: Sequelize.FLOAT({ length: 10, decimals: 2 }),

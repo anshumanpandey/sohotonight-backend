@@ -12,7 +12,6 @@ module.exports = {
       },
       pricePerToken: {
         type: Sequelize.FLOAT(2, 2),
-        primaryKey: true,
       },
       createdAt: {
         allowNull: false,
@@ -31,7 +30,6 @@ module.exports = {
       },
       userId: {
         type: Sequelize.INTEGER,
-        primaryKey: true,
       },
       videoId: {
         type: Sequelize.INTEGER,

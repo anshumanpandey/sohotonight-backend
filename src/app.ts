@@ -39,21 +39,22 @@ app.use(express.static(join(__dirname, '../templates')));
 
 app.use('/api', routes)
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response) => {
     if (err instanceof ApiError) {
+        console.log("ApiError", err)
         res.status(err.code).json({
             statusCode: err.code,
             message: err.message
         });
     } else if (err.name === 'UnauthorizedError') {
-        console.log(err)
+        console.log("UnauthorizedError", err)
         res.status(401).send({
             statusCode: 401,
             message: "Unauthorized"
         });
     }
     else {
-        console.log(err)
+        console.log("fatal error", err)
         res.status(500).json({
             statusCode: 500,
             message: "Unknown Error"

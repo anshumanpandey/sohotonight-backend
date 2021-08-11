@@ -45,7 +45,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
             statusCode: err.code,
             message: err.message
         });
-        return
     } else if (err.name === 'UnauthorizedError') {
         console.log(err)
         res.status(401).send({
@@ -59,7 +58,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
             statusCode: 500,
             message: "Unknown Error"
         });
-        return
     }
 });
 

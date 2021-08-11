@@ -64,6 +64,9 @@ export const startSocketServer = (s: http.Server) => {
 
     //@ts-expect-error
     io.on('connection', (client: SockerConnection) => {
+        client.on("error", (nativeError) => {
+            console.log("socketIo error", nativeError)
+        })
         storeUserConnection({ userId: client.decoded_token.id, socketConn: client })
         const authWrapper = includeUserData(client)
 

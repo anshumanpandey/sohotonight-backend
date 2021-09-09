@@ -39,7 +39,7 @@ app.use(express.static(join(__dirname, '../templates')));
 
 app.use('/api', routes)
 
-app.use((err: any, req: express.Request, res: express.Response) => {
+app.use((err: any, req: express.Request, res: express.Response, _: express.NextFunction) => {
     if (err instanceof ApiError) {
         console.log("ApiError", err)
         res.status(err.code).json({

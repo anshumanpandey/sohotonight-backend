@@ -8,6 +8,7 @@ import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
 import { getVideoInvitationsByUserInvitatedId, invitationSerializer, updateExpiredInvitations } from '../models/invitation.model';
 import { createVideoChat } from '../controllers/videoChat.controller';
+import { getIceServers } from '../utils/AwsKinesisClient';
 
 export const videoRoutes = express();
 
@@ -49,6 +50,14 @@ videoRoutes.post('/discount', JwtMiddleware(), asyncHandler(async (req, res) => 
   await discountUserToken({ user: u })
 
   res.send({ success: "Discounted" });
+}));
+
+videoRoutes.get('/getIceServes', asyncHandler(async (req, res) => {
+
+      const servers = await getIceServers()
+
+
+  res.send(servers);
 }));
 
 

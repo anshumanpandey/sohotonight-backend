@@ -2,7 +2,6 @@ import express from 'express';
 import UserModel, { discountUserToken } from "../models/user.model"
 import { ApiError } from "../utils/ApiError"
 import * as VideoModel from "../models/videoChat.model"
-import { Logger } from '../utils/Logger';
 
 export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: string, startWithVoice?: boolean }> = async (req, res) => {
     const [u, toUser] = await Promise.all([

@@ -1,0 +1,13 @@
+listening-port=3478
+# and 5349 for TLS (secure)
+tls-listening-port=5349
+fingerprint
+user=admin:123456abc!
+lt-cred-mech
+realm=sohotonight.com
+log-file=/var/log/turnserver/turnserver.log
+simple-log
+external-ip=3.131.235.241
+cert=/etc/pki/tls/certs/server.crt
+pkey=/etc/pki/tls/certs/server.key
+dh2066

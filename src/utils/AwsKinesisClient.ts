@@ -2,6 +2,8 @@ import AWS from 'aws-sdk';
 import { Role } from 'amazon-kinesis-video-streams-webrtc';
 import { ApiError } from './ApiError';
 
+export type RoleParams = { role: Role };
+
 const CHANNEL_ARN = 'arn:aws:kinesisvideo:us-east-2:678467088006:channel/soho/1631206530796';
 
 const awsConfig = {
@@ -15,13 +17,13 @@ const kinesisVideoClient = new AWS.KinesisVideo({
   correctClockSkew: true,
 });
 
-const getSiganling = async () => {
+const getSiganling = async (p: RoleParams) => {
   const getSignalingChannelEndpointResponse = await kinesisVideoClient
     .getSignalingChannelEndpoint({
       ChannelARN: CHANNEL_ARN,
       SingleMasterChannelEndpointConfiguration: {
         Protocols: ['WSS', 'HTTPS'],
-        Role: Role.MASTER,
+        Role: p.role,
       },
     })
     .promise();
@@ -46,9 +48,7 @@ const getSiganling = async () => {
   return endpointsByProtocol;
 };
 
-const getChannels = async () => {
-  const endpointsByProtocol = await getSiganling();
-
+const getChannels = async (endpointsByProtocol: Record<string, string>) => {
   const kinesisVideoSignalingChannelsClient = new AWS.KinesisVideoSignalingChannels({
     ...awsConfig,
     endpoint: endpointsByProtocol.HTTPS,
@@ -60,8 +60,9 @@ const getChannels = async () => {
 
 export type IceServerData = { urls: string | string[]; username?: string; credential?: string };
 
-export const getIceServers = async (): Promise<IceServerData[]> => {
-  const kinesisVideoSignalingChannelsClient = await getChannels();
+export const getIceServers = async (p: RoleParams): Promise<IceServerData[]> => {
+  const endpointsByProtocol = await getSiganling(p);
+  const kinesisVideoSignalingChannelsClient = await getChannels(endpointsByProtocol);
   const getIceServerConfigResponse = await kinesisVideoSignalingChannelsClient
     .getIceServerConfig({
       ChannelARN: CHANNEL_ARN,

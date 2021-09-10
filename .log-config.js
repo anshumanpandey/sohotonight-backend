@@ -1,6 +1,8 @@
 require('dotenv').config()
 module.exports = {
-    filter: (data) => process.env.LOG_ENABLED === "FILE",
+    filter: (data) => {
+        return process.env.LOG_ENABLED === "FILE"
+    },
     output: {
         path: "request.log", // name of file
         options: {

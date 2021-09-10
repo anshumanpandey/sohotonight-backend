@@ -6,7 +6,7 @@ const config = require(__dirname + '/../../config/db');
 
 let SequalizeConfig: SequelizeOptions = {
   models: [path.join(__dirname, '..', 'models')],
-  logging: GlobalEnv.DISABLED_SEQUELIZE_LOGS,
+  logging: !GlobalEnv.DISABLED_SEQUELIZE_LOGS,
 };
 
 if (GlobalEnv.isProduction) {

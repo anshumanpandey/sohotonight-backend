@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "build": "rm -fr dist/ && tsc",
-    "start": "node ./dist/index.js",
-    "dev": "TS_NODE_FILES=1 TS_NODE_PROJECT='./tsconfig.json' ts-node ./src"
+    "start": "node ./dist/index.js | rotate-logs --config=.log-config.js",
+    "dev": "TS_NODE_FILES=1 TS_NODE_PROJECT='./tsconfig.json' ts-node ./src | rotate-logs --config=.log-config.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
     "@types/pino": "^6.3.6",
     "@typescript-eslint/eslint-plugin": "4.31.0",
     "@typescript-eslint/parser": "4.31.0",
+    "@vrbo/pino-rotating-file": "^3.0.0",
     "eslint": "7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-airbnb-typescript": "^14.0.0",
@@ -39,6 +40,7 @@
     "cors": "^2.8.5",
     "date-fns": "^2.19.0",
     "dotenv": "^8.2.0",
+    "envalid": "^7.2.1",
     "eventemitter3": "^4.0.7",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",

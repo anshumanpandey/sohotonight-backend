@@ -3,8 +3,8 @@ import { Role } from 'amazon-kinesis-video-streams-webrtc';
 import { ApiError } from './ApiError';
 
 export type RoleParams = { role: Role };
-
-const CHANNEL_ARN = 'arn:aws:kinesisvideo:us-east-2:678467088006:channel/soho/1631206530796';
+export type ChannelNameParams = { videoUuid: string };
+export type ArnChannelParams = { arnChannel: string };
 
 const awsConfig = {
   region: 'us-east-2',
@@ -17,10 +17,47 @@ const kinesisVideoClient = new AWS.KinesisVideo({
   correctClockSkew: true,
 });
 
-const getSiganling = async (p: RoleParams) => {
+export const getActiveSignalingChannel = async (): Promise<AWS.KinesisVideo.ChannelInfoList | undefined> => {
+  const activeSignalingChannels = await kinesisVideoClient.listSignalingChannels().promise();
+
+  return activeSignalingChannels.ChannelInfoList;
+};
+
+export const getArnChannelNameFrom = async (uuid: string): Promise<string> => {
+  const channels = await getActiveSignalingChannel();
+  if (!channels) throw new ApiError('Could get find ARN channel');
+
+  const channel = channels.find((i) => i.ChannelARN?.includes(uuid));
+  if (!channel) throw new ApiError('Could not find ARN channel');
+  if (!channel.ChannelARN) throw new ApiError('Signaling channel has no ARN ddefined');
+
+  return channel.ChannelARN;
+};
+
+export const createSignalChannel = async (p: ChannelNameParams): Promise<string | undefined> => {
+  const createSignalingChannelResponse = await kinesisVideoClient
+    .createSignalingChannel({
+      ChannelName: p.videoUuid,
+      ChannelType: 'SINGLE_MASTER',
+    })
+    .promise();
+  return createSignalingChannelResponse.ChannelARN;
+};
+
+export const deleteSignalingChannel = async (p: ArnChannelParams): Promise<boolean> => {
+  await kinesisVideoClient
+    .deleteSignalingChannel({
+      ChannelARN: `${p.arnChannel}`,
+    })
+    .promise();
+
+  return true;
+};
+
+const getSiganling = async (p: RoleParams & ArnChannelParams) => {
   const getSignalingChannelEndpointResponse = await kinesisVideoClient
     .getSignalingChannelEndpoint({
-      ChannelARN: CHANNEL_ARN,
+      ChannelARN: p.arnChannel,
       SingleMasterChannelEndpointConfiguration: {
         Protocols: ['WSS', 'HTTPS'],
         Role: p.role,
@@ -60,12 +97,13 @@ const getChannels = async (endpointsByProtocol: Record<string, string>) => {
 
 export type IceServerData = { urls: string | string[]; username?: string; credential?: string };
 
-export const getIceServers = async (p: RoleParams): Promise<IceServerData[]> => {
-  const endpointsByProtocol = await getSiganling(p);
+export const getIceServers = async (p: RoleParams & ChannelNameParams): Promise<IceServerData | null> => {
+  const arnChannel = await getArnChannelNameFrom(p.videoUuid);
+  const endpointsByProtocol = await getSiganling({ ...p, arnChannel });
   const kinesisVideoSignalingChannelsClient = await getChannels(endpointsByProtocol);
   const getIceServerConfigResponse = await kinesisVideoSignalingChannelsClient
     .getIceServerConfig({
-      ChannelARN: CHANNEL_ARN,
+      ChannelARN: arnChannel,
     })
     .promise();
   const iceServers: IceServerData[] = [{ urls: `stun:stun.kinesisvideo.${awsConfig.region}.amazonaws.com:443` }];
@@ -81,7 +119,7 @@ export const getIceServers = async (p: RoleParams): Promise<IceServerData[]> => 
       credential: iceServer.Password,
     });
   });
-  return iceServers;
+  return iceServers.pop() || null;
 };
 
 export default getIceServers;

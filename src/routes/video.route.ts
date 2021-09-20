@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { ApiError } from '../utils/ApiError';
 import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import UserModel, { discountUserToken } from '../models/user.model';
-import { getOngoingVideoChats, endVideoChat, createVideoRoom } from '../models/videoChat.model';
+import { getOngoingVideoChats, endVideoChat, createVideoRoom, getVideoRoom } from '../models/videoChat.model';
 import { checkSchema } from 'express-validator';
 import { validateParams } from '../middlewares';
 import {
@@ -12,7 +12,7 @@ import {
   updateExpiredInvitations,
 } from '../models/invitation.model';
 import { createVideoChat } from '../controllers/videoChat.controller';
-import { getIceServers, RoleParams } from '../utils/AwsKinesisClient';
+import { getActiveSignalingChannel, getIceServers, RoleParams } from '../utils/AwsKinesisClient';
 
 export const videoRoutes = express();
 
@@ -69,10 +69,15 @@ videoRoutes.post(
 );
 
 videoRoutes.get(
-  '/getIceServes/:role',
+  '/getIceServes/:role/:roomId',
+  JwtMiddleware(),
   asyncHandler(async (req, res) => {
-    const { role } = req.params;
-    const servers = await getIceServers({ role: role as RoleParams['role'] });
+    const { role, roomId } = req.params;
+
+    const videoRoom = await getVideoRoom({ id: roomId });
+    if (!videoRoom) throw new ApiError('Video room not found');
+
+    const servers = await getIceServers({ role: role as RoleParams['role'], videoUuid: videoRoom.uuid });
 
     res.send(servers);
   }),

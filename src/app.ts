@@ -79,7 +79,7 @@ const bootstrap = () => {
 
 let httpsServer: null | https.Server = null;
 
-if (process.env.HTTPS_ENABLED) {
+if (process.env.HTTPS_ENABLED === '1') {
   const privateKey = fs.readFileSync(join(__dirname, '..', 'privkey.key'), 'utf8');
   const certificate = fs.readFileSync(join(__dirname, '..', 'cert.crt'), 'utf8');
   const credentials = { key: privateKey, cert: certificate };

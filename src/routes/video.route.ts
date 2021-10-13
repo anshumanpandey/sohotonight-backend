@@ -12,7 +12,7 @@ import {
   updateExpiredInvitations,
 } from '../models/invitation.model';
 import { createVideoChat } from '../controllers/videoChat.controller';
-import { getActiveSignalingChannel, getIceServers, RoleParams } from '../utils/AwsKinesisClient';
+import { getIceServers, RoleParams } from '../utils/AwsKinesisClient';
 
 export const videoRoutes = express();
 

@@ -1,423 +1,424 @@
-import { Table, Column, Model, DataType, HasMany, BelongsToMany } from 'sequelize-typescript'
-import { Op, Transaction } from "sequelize"
-import PictureModel from "./picture.model";
-import VideoModel from "./video.model";
-import PostModel from "./post.model";
-import ServiceModel from "./services.model";
-import PaymentModel from "./payment.model";
+import { Table, Column, Model, DataType, HasMany, BelongsToMany } from 'sequelize-typescript';
+import { Op, Transaction } from 'sequelize';
+import PictureModel from './picture.model';
+import VideoModel from './video.model';
+import PostModel from './post.model';
+import ServiceModel from './services.model';
+import PaymentModel from './payment.model';
 import UserServiceModel from './userService.model';
 import VideoChatToUser from './videoChatToUser.model';
-import VideoChatModel from './videoChat.model';
+import VideoChatModel, { getOngoingVideoChats } from './videoChat.model';
 import { WhereAttributeHash } from 'sequelize/types';
 import { Logger } from '../utils/Logger';
 import AssetBought from './AssetBought.model';
 import emitter from 'eventemitter3';
+import { literal } from 'sequelize';
 
-export const UserEventEmitter = new emitter()
+export const UserEventEmitter = new emitter();
 
 export enum USER_ROLE_ENUM {
-  MODEL = "MODEL",
-  USER = "USER"
+  MODEL = 'MODEL',
+  USER = 'USER',
 }
 
-export const ALLOWED_ROLE = [
-  USER_ROLE_ENUM.MODEL,
-  USER_ROLE_ENUM.USER,
-]
+export const ALLOWED_ROLE = [USER_ROLE_ENUM.MODEL, USER_ROLE_ENUM.USER];
 
 export interface UserAttributes {
-  id: string,
-  nickname: string,
-  firstName?: string,
-  lastName?: string,
-  phoneNumber?: string
-  callNumber?: string
-  town?: string
-  gender?: string
-  postCode?: string
-  tokensBalance: number
-  aboutYouSummary?: string
-  aboutYouDetail?: string
-  orientation?: string
-  railStation?: string
-  password: string,
-  emailAddress: string,
-  dayOfBirth: string,
-  monthOfBirth: string,
-  yearOfBirth: string,
-  country: string,
-  county: string,
+  id: string;
+  nickname: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  callNumber?: string;
+  town?: string;
+  gender?: string;
+  postCode?: string;
+  tokensBalance: number;
+  aboutYouSummary?: string;
+  aboutYouDetail?: string;
+  orientation?: string;
+  railStation?: string;
+  password: string;
+  emailAddress: string;
+  dayOfBirth: string;
+  monthOfBirth: string;
+  yearOfBirth: string;
+  country: string;
+  county: string;
 
-  inches: boolean,
-  feet: boolean,
+  inches: boolean;
+  feet: boolean;
 
-  escortServices: boolean,
-  phoneChat: boolean,
-  webcamWork: boolean,
-  contentProducer: boolean,
-  allowSocialMediaMarketing: boolean,  
+  escortServices: boolean;
+  phoneChat: boolean;
+  webcamWork: boolean;
+  contentProducer: boolean;
+  allowSocialMediaMarketing: boolean;
 
-  recievePromotions: boolean,
-  hasAdultContentCertification: boolean,
+  recievePromotions: boolean;
+  hasAdultContentCertification: boolean;
 
-  isTrans: string
+  isTrans: string;
 
-  isLogged: boolean
+  isLogged: boolean;
 
-  profilePic?: string
-  bannerImage?: string
-  authenticationProfilePic: string
-  authenticationProfilePicIsAuthenticated: boolean
+  profilePic?: string;
+  bannerImage?: string;
+  authenticationProfilePic: string;
+  authenticationProfilePicIsAuthenticated: boolean;
 }
 
-export const RoleKeys = Object.values(USER_ROLE_ENUM).filter(k => !Number.isInteger(k)) as string[]
-
+export const RoleKeys = Object.values(USER_ROLE_ENUM).filter((k) => !Number.isInteger(k)) as string[];
 
 @Table
 export default class UserModel extends Model {
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  nickname: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  nickname: string | null
+  firstName: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  firstName: string | null
+  lastName: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  password: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  emailAddress: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  lastName: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false
-  })
-  password: string
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false
-  })
-  emailAddress: string
+  phoneNumber: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  phoneNumber: string | null
+  callNumber: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  callNumber: string | null
+  railStation: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  railStation: string | null
+  town: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  town: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null
-  })
-  aboutYouSummary: string | null
+  aboutYouSummary: string | null;
 
   @Column({
     type: DataType.STRING(2000),
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  aboutYouDetail: string | null
+  aboutYouDetail: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  orientation: string | null
+  orientation: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  gender: string | null
+  gender: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
-  postCode: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false
-  })
-  dayOfBirth: string
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false
-  })
-  monthOfBirth: string
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false
-  })
-  yearOfBirth: string
+  postCode: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    defaultValue: "United Kingdom",
   })
-  country: string
-
-  @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-  })
-  tokensBalance: number
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null
-  })
-  county: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null
-  })
-  profilePic: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null
-  })
-  authenticationProfilePic: string | null
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null
-  })
-  bannerImage: string | null
+  dayOfBirth: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    defaultValue: USER_ROLE_ENUM.MODEL
   })
-  role: string
-  
+  monthOfBirth: string;
+
   @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
+    type: DataType.STRING,
+    allowNull: false,
   })
-  inches: number
+  yearOfBirth: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: 'United Kingdom',
+  })
+  country: string;
 
   @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
   })
-  feet: number
-  
+  tokensBalance: number;
+
   @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
   })
-  isLogged: boolean
+  county: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  profilePic: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  authenticationProfilePic: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  bannerImage: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: USER_ROLE_ENUM.MODEL,
+  })
+  role: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  inches: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  feet: number;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  escortServices: boolean
+  isLogged: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  allowSocialMediaMarketing: boolean
+  escortServices: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  phoneChat: boolean
+  allowSocialMediaMarketing: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  webcamWork: boolean
+  phoneChat: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  contentProducer: boolean
+  webcamWork: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  recievePromotions: boolean
+  contentProducer: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  isTrans: boolean
+  recievePromotions: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  hasAdultContentCertification: boolean
+  isTrans: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  authenticationProfilePicIsAuthenticated: boolean
+  hasAdultContentCertification: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  authenticationProfilePicIsAuthenticated: boolean;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  resetPasswordToken?: string
+  resetPasswordToken?: string;
 
   @HasMany(() => PostModel)
-  Posts: PostModel
+  Posts: PostModel;
 
   @HasMany(() => VideoModel)
-  Videos: VideoModel
+  Videos: VideoModel;
 
   @HasMany(() => AssetBought)
-  assetsBought: AssetBought[]
+  assetsBought: AssetBought[];
 
   @HasMany(() => PictureModel)
-  Pictures: PictureModel[]
+  Pictures: PictureModel[];
 
   @HasMany(() => PaymentModel)
-  payments: PaymentModel[]
+  payments: PaymentModel[];
 
   @BelongsToMany(() => ServiceModel, () => UserServiceModel)
-  services: ServiceModel
+  services: ServiceModel;
 
   @BelongsToMany(() => VideoChatModel, () => VideoChatToUser)
-  videoChats: VideoChatModel[]
+  videoChats: VideoChatModel[];
 }
 
 //@ts-expect-error
-export const clearUrlFromAsset = function(user) {
+export const clearUrlFromAsset = function (user) {
   const filteredVideos = user?.Videos.map((vid: any) => {
-    const v = vid.toJSON()
+    const v = vid.toJSON();
     if (v.isFree == false) {
-      const { assetUrl, ...video} = v
-      return video
-    } 
-    return v
-  })
+      const { assetUrl, ...video } = v;
+      return video;
+    }
+    return v;
+  });
 
   //@ts-expect-error
-  const filteredPictures = user?.Pictures?.map(vid => {
-    const v = vid.toJSON()
+  const filteredPictures = user?.Pictures?.map((vid) => {
+    const v = vid.toJSON();
     if (v.isFree == false) {
-      const { assetUrl, ...video} = v
-      return video
-    } 
-    return v
-  })
+      const { assetUrl, ...video } = v;
+      return video;
+    }
+    return v;
+  });
 
   const u = user;
 
-  u.Videos = filteredVideos
-  u.Pictures = filteredPictures
+  u.Videos = filteredVideos;
+  u.Pictures = filteredPictures;
 
-  return u
+  return u;
 };
 
-export const discountUserToken = ({ user, amount = 1 }: { user: UserModel, amount?: number}, opt?: { t?: Transaction}) => {
-  const tokenAmount = user.tokensBalance - amount
-  Logger.info(`Tokens ${tokenAmount} deducted for user ${user.id}`)
-  return user.update({ tokensBalance: tokenAmount }, { transaction: opt?.t })
-}
+export const discountUserToken = (
+  { user, amount = 1 }: { user: UserModel; amount?: number },
+  opt?: { t?: Transaction },
+) => {
+  const tokenAmount = user.tokensBalance - amount;
+  Logger.info(`Tokens ${tokenAmount} deducted for user ${user.id}`);
+  return user.update({ tokensBalance: tokenAmount }, { transaction: opt?.t });
+};
 
 export const getUsersBy = (by: WhereAttributeHash) => {
-  return UserModel.findAll({ where: by })
-}
+  return UserModel.findAll({ where: by });
+};
 
 export const publicUserSerializer = (u: UserModel) => {
-  const { password, ...userData} = u.toJSON() as any
-  return userData
-}
+  const { password, ...userData } = u.toJSON() as any;
+  return userData;
+};
 
-type GetModelsParams = { exclude?: string[] }
+type GetModelsParams = { exclude?: string[] };
 export const getModels = (opt?: GetModelsParams) => {
   const where: WhereAttributeHash = {
     role: {
-      [Op.not]: USER_ROLE_ENUM.USER
-    }
-  }
+      [Op.not]: USER_ROLE_ENUM.USER,
+    },
+  };
   if (opt?.exclude) {
-    const idToFilter = opt.exclude.filter(i => i !== null && i !== undefined)
-    where.id = { [Op.not]: idToFilter }
+    const idToFilter = opt.exclude.filter((i) => i !== null && i !== undefined);
+    where.id = { [Op.not]: idToFilter };
   }
-  return UserModel.findAll({ where,attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }] })
-}
+  return UserModel.findAll({ where, attributes: { exclude: ['password'] }, include: [{ model: ServiceModel }] });
+};
 
 export const getLoggedUserData = async (userId: string) => {
-  const u = await UserModel.findByPk(userId,{ attributes: { exclude: ["password"] }, include: [{ model: ServiceModel }, { model: AssetBought }] })
-  return u
-}
+  const u = await UserModel.findByPk(userId, {
+    attributes: { exclude: ['password'] },
+    include: [{ model: ServiceModel }, { model: AssetBought }],
+  });
+  return u;
+};
 
 export const waitTillUserLogout = () => {
-  const eventName = 'user-logout'
+  const eventName = 'user-logout';
   return new Promise((resolve) => {
     const tick = setTimeout(() => {
-      UserEventEmitter.removeListener(eventName)
-      resolve()
-    }, 1000)
+      UserEventEmitter.removeListener(eventName);
+      resolve();
+    }, 1000);
 
     UserEventEmitter.on(eventName, (e) => {
       if (e.userId) {
-        clearTimeout(tick)
-        UserModel.update({ isLogged: true }, { where: { id: e.userId }})
-        .then(() => {
-          resolve()
-          UserEventEmitter.removeListener(eventName)
-        })
+        clearTimeout(tick);
+        UserModel.update({ isLogged: true }, { where: { id: e.userId } }).then(() => {
+          resolve();
+          UserEventEmitter.removeListener(eventName);
+        });
       }
     });
   });
-}
+};

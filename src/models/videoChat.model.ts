@@ -98,7 +98,7 @@ export const createVideoRoom = async ({
   return invitation;
 };
 
-export const getOngoingVideoChats = async (p?: { relatedUser?: number }) => {
+export const getOngoingVideoChats = async (p?: { relatedUser?: number | number[] }) => {
   const where: WhereAttributeHash | OrOperator = { endDatetime: null };
 
   const onGoinChats = await VideoChatModel.findAll({
@@ -111,7 +111,15 @@ export const getOngoingVideoChats = async (p?: { relatedUser?: number }) => {
 
   let result = onGoinChats;
   if (p && p.relatedUser) {
-    result = onGoinChats.filter((c) => c.createdById == p.relatedUser || c.invitation.toUserId == p.relatedUser);
+    let relatedUsers: number[] = [];
+    if (p.relatedUser instanceof Array) {
+      relatedUsers = p.relatedUser;
+    } else {
+      relatedUsers = [p.relatedUser];
+    }
+    result = onGoinChats.filter(
+      (c) => relatedUsers.includes(c.createdById) === true || relatedUsers.includes(c.invitation.toUserId) === true,
+    );
   }
   return result;
 };

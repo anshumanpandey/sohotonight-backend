@@ -1,7 +1,7 @@
 import express from 'express';
-import UserModel, { discountUserToken } from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
 import * as VideoModel from '../models/videoChat.model';
+import UserModel, { discountUserToken } from '../models/user.model';
 
 export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: string; startWithVoice?: boolean }> =
   async (req, res) => {
@@ -15,6 +15,10 @@ export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: s
     if (!toUser) throw new ApiError('User to call not found');
     if (u.id.toString() === toUser.id.toString()) throw new ApiError('Cannot create call to itself');
 
+    const onGoingCalls = await VideoModel.getOngoingVideoChats({ relatedUser: [u.id, toUser.id] });
+    if (onGoingCalls.length !== 0) {
+      throw new ApiError('Person is currently on a call', 409);
+    }
     const p = {
       user: u,
       toUser,
@@ -33,7 +37,7 @@ export const discountForVideoChat = async ({ callId, user }: { callId: string; u
   const foundChat = currentVideoChats.find((v) => v.id == callId);
   if (!foundChat) throw new ApiError('Video chat not found');
 
-  if (u.tokensBalance == 0) {
+  if (u.tokensBalance === 0) {
     await VideoModel.endVideoChat({ videoChat: foundChat });
     return;
   }
@@ -41,22 +45,22 @@ export const discountForVideoChat = async ({ callId, user }: { callId: string; u
   await discountUserToken({ user: u });
 };
 
-export const onChatEnd = (videoChat: any) => {
-  VideoModel.endVideoChat({ videoChat: videoChat });
+export const onChatEnd = (videoChat: any): void => {
+  VideoModel.endVideoChat({ videoChat });
 };
 
-export const stopVideoBroadcast = (body: any) => {
+export const stopVideoBroadcast = (body: any): void => {
   VideoModel.setVideoBroadcast({ videoChat: body.currentVideoChat, user: body.user, broadcast: false });
 };
 
-export const resumeVideoBroadcast = (body: any) => {
+export const resumeVideoBroadcast = (body: any): void => {
   VideoModel.setVideoBroadcast({ videoChat: body.currentVideoChat, user: body.user, broadcast: true });
 };
 
-export const stopVideoAudioBroadcast = (body: any) => {
+export const stopVideoAudioBroadcast = (body: any): void => {
   VideoModel.setVideoAudioBroadcast({ videoChat: body.currentVideoChat, user: body.user, broadcast: false });
 };
 
-export const resumeVideoAudioBroadcast = (body: any) => {
+export const resumeVideoAudioBroadcast = (body: any): void => {
   VideoModel.setVideoAudioBroadcast({ videoChat: body.currentVideoChat, user: body.user, broadcast: true });
 };

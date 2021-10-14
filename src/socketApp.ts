@@ -67,6 +67,7 @@ const errorTracker = (s: SockerConnection) => (cb: any) => {
     try {
       cb(e);
     } catch (error) {
+      console.log('ERROR catched for custom wrapper');
       s.emit('error', error);
     }
   };

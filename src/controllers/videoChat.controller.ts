@@ -35,7 +35,8 @@ export const discountForVideoChat = async ({ callId, user }: { callId: string; u
 
   const currentVideoChats = await VideoModel.getOngoingVideoChats();
   const foundChat = currentVideoChats.find((v) => v.id.toString() === callId.toString());
-  if (!foundChat) throw new ApiError(`Video chat [${callId}] not found`);
+  if (!foundChat)
+    throw new ApiError(`Video chat [${callId}] not found on array of ${currentVideoChats.length} results`);
 
   if (u.tokensBalance === 0) {
     await VideoModel.endVideoChat({ videoChat: foundChat });

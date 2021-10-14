@@ -231,7 +231,6 @@ export const doHandshake = async ({
   invitation: InvitationModel;
   user: UserModel;
 }) => {
-  throw new ApiError('FAKE ERROR');
   const [invitation] = await getInvitationsBy({ id: i.id });
 
   let sendTo = invitation.createdById;

@@ -67,8 +67,7 @@ const errorTracker = (s: SockerConnection) => (cb: any) => {
     try {
       await cb(e);
     } catch (error) {
-      console.log('ERROR catched for custom wrapper');
-      s.emit('error', error);
+      console.log('socketIo error', nativeError);
     }
   };
 };
@@ -92,9 +91,6 @@ export const startSocketServer = (s: http.Server) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   io.on('connection', (client: SockerConnection) => {
-    client.on('error', (nativeError) => {
-      console.log('socketIo error', nativeError);
-    });
     storeUserConnection({ userId: client.decoded_token.id, socketConn: client });
     const authWrapper = includeUserData(client);
     const errorWrapper = errorTracker(client);

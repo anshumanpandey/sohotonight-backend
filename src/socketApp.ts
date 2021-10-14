@@ -63,9 +63,9 @@ const includeUserData = (conn: SockerConnection) => (cb: any) => {
 };
 
 const errorTracker = (s: SockerConnection) => (cb: any) => {
-  return (e: any) => {
+  return async (e: any) => {
     try {
-      cb(e);
+      await cb(e);
     } catch (error) {
       console.log('ERROR catched for custom wrapper');
       s.emit('error', error);

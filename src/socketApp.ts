@@ -66,7 +66,7 @@ const errorTracker = (s: SockerConnection) => (cb: any) => {
   return async (e: any) => {
     try {
       await cb(e);
-    } catch (error) {
+    } catch (nativeError) {
       console.log('socketIo error', nativeError);
     }
   };

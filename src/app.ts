@@ -50,7 +50,7 @@ app.use('/api', routes);
 
 app.use((err: express.Errback, req: express.Request, res: express.Response, _: express.NextFunction) => {
   if (err instanceof ApiError) {
-    LoggerTool.error({ err, 'id-req': req.id });
+    LoggerTool.error({ err, 'id-req': req.id, message: err.message });
     res.status(err.code).json({
       statusCode: err.code,
       message: err.message,

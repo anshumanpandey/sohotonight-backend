@@ -62,6 +62,16 @@ const includeUserData = (conn: SockerConnection) => (cb: any) => {
   return (e: any) => cb({ ...e, user: conn.decoded_token });
 };
 
+const errorTracker = (s: SockerConnection) => (cb: any) => {
+  return (e: any) => {
+    try {
+      cb(e);
+    } catch (error) {
+      s.emit('error', error);
+    }
+  };
+};
+
 let io = null;
 export const startSocketServer = (s: http.Server) => {
   io = new socket.Server(s, {
@@ -78,21 +88,23 @@ export const startSocketServer = (s: http.Server) => {
     }),
   );
 
-  //@ts-expect-error
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
   io.on('connection', (client: SockerConnection) => {
     client.on('error', (nativeError) => {
       console.log('socketIo error', nativeError);
     });
     storeUserConnection({ userId: client.decoded_token.id, socketConn: client });
     const authWrapper = includeUserData(client);
+    const errorWrapper = errorTracker(client);
 
-    client.on('DISCOUNT_VIDEO_CHAT', authWrapper(videoCtr.discountForVideoChat));
-    client.on('END_VIDEO_CHAT', videoCtr.onChatEnd);
-    client.on('CONNECTION_HANDSHAKE', authWrapper(doHandshake));
-    client.on('STOP_VIDEO_BROADCAST', authWrapper(videoCtr.stopVideoBroadcast));
-    client.on('RESUME_VIDEO_BROADCAST', authWrapper(videoCtr.resumeVideoBroadcast));
-    client.on('STOP_VIDEO_AUDIO_BROADCAST', authWrapper(videoCtr.stopVideoAudioBroadcast));
-    client.on('RESUME_VIDEO_AUDIO_BROADCAST', authWrapper(videoCtr.resumeVideoAudioBroadcast));
+    client.on('DISCOUNT_VIDEO_CHAT', errorWrapper(authWrapper(videoCtr.discountForVideoChat)));
+    client.on('END_VIDEO_CHAT', errorWrapper(videoCtr.onChatEnd));
+    client.on('CONNECTION_HANDSHAKE', errorWrapper(authWrapper(doHandshake)));
+    client.on('STOP_VIDEO_BROADCAST', errorWrapper(authWrapper(videoCtr.stopVideoBroadcast)));
+    client.on('RESUME_VIDEO_BROADCAST', errorWrapper(authWrapper(videoCtr.resumeVideoBroadcast)));
+    client.on('STOP_VIDEO_AUDIO_BROADCAST', errorWrapper(authWrapper(videoCtr.stopVideoAudioBroadcast)));
+    client.on('RESUME_VIDEO_AUDIO_BROADCAST', errorWrapper(authWrapper(videoCtr.resumeVideoAudioBroadcast)));
 
     client.on('disconnect', () => {
       console.log('disconnected');

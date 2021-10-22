@@ -40,12 +40,14 @@ export default class InvitationModel extends Model {
   @ForeignKey(() => VideoChatModel)
   @Column
   videoChatId: number;
+
   @BelongsTo(() => VideoChatModel)
   videoChat: VideoChatModel;
 
   @ForeignKey(() => UserModel)
   @Column
   toUserId: number;
+
   @BelongsTo(() => UserModel)
   toUser: UserModel;
 
@@ -101,7 +103,6 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
   if (by.createdById) {
     chatWhere.createdById = by.createdById;
   }
-  console.log({ where });
   let invitations = await InvitationModel.findAll({
     where,
     include: [

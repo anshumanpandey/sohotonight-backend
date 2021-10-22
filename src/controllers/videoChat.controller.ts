@@ -17,7 +17,11 @@ export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: s
 
     const onGoingCalls = await VideoModel.getOngoingVideoChats({ relatedUser: [u.id, toUser.id] });
     if (onGoingCalls.length !== 0) {
-      throw new ApiError('Person is currently on a call', 409);
+      throw new ApiError('User is currently on a call', 409);
+    }
+
+    if (toUser.isLogged === false) {
+      throw new ApiError('User is not online', 409);
     }
     const p = {
       user: u,

@@ -9,7 +9,7 @@ module.exports = {
         'responseFromUser',
         {
           type: Sequelize.DataTypes.STRING,
-          defaultValue: "WAITING_RESPONSE"
+          defaultValue: 'WAITING_RESPONSE',
         },
         { transaction }
       );

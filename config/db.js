@@ -14,8 +14,8 @@ module.exports = {
     port: 3306,
     dialect: 'mysql',
     dialectOptions: {
-      bigNumberStrings: true
-    }
+      bigNumberStrings: true,
+    },
   },
   production: {
     username: process.env.DB_USERNAME,
@@ -23,5 +23,5 @@ module.exports = {
     database: process.env.DB_NAME,
     host: process.env.PROD_DB_HOSTNAME,
     dialect: process.env.DB_DIALECT,
-  }
+  },
 };

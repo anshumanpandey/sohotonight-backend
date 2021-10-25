@@ -1,7 +1,10 @@
 import express from 'express';
 import { ApiError } from '../utils/ApiError';
 import * as VideoModel from '../models/videoChat.model';
-import UserModel, { discountUserToken } from '../models/user.model';
+import UserModel, { discountUserToken, USER_ROLE_ENUM } from '../models/user.model';
+import { createMessage, CreateMessageParams, MESSAGES_EVENT_ENUM } from '../models/Message.model';
+import { createConversation, getConversationBy } from '../models/Conversation.model';
+import { sendNotificatioToUserId } from '../socketApp';
 
 export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: string; startWithVoice?: boolean }> =
   async (req, res) => {
@@ -21,6 +24,28 @@ export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: s
     }
 
     if (toUser.isLogged === false) {
+      if (toUser.role === USER_ROLE_ENUM.MODEL) {
+        let [conversation] = await getConversationBy({ implicatedUserId: toUser.id });
+
+        if (!conversation) {
+          conversation = await createConversation({
+            createdByUserId: u.id,
+            toUserId: toUser.id,
+          });
+        }
+        const newMessageParams: CreateMessageParams = {
+          conversation,
+          body: `Missed call from ${u.nickname}`,
+          createdByUser: u,
+        };
+        createMessage(newMessageParams).then(() => {
+          sendNotificatioToUserId({
+            userId: toUser.id,
+            eventName: MESSAGES_EVENT_ENUM.NEW_MESSAGE,
+            body: toUser.toJSON(),
+          });
+        });
+      }
       throw new ApiError('User is not online', 409);
     }
     const p = {

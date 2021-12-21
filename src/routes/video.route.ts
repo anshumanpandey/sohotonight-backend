@@ -12,7 +12,7 @@ import {
   updateExpiredInvitations,
 } from '../models/invitation.model';
 import { createVideoChat } from '../controllers/videoChat.controller';
-import { getIceServers, RoleParams } from '../utils/AwsKinesisClient';
+import { getIceServers, RoleParams, getArnChannelNameFrom, getSiganling } from '../utils/AwsKinesisClient';
 
 export const videoRoutes = express();
 
@@ -72,13 +72,17 @@ videoRoutes.get(
   '/getIceServes/:role/:roomId',
   JwtMiddleware(),
   asyncHandler(async (req, res) => {
-    const { role, roomId } = req.params;
+    const { role: roleParam, roomId } = req.params;
 
     const videoRoom = await getVideoRoom({ id: roomId });
     if (!videoRoom) throw new ApiError('Video room not found');
 
-    const servers = await getIceServers({ role: role as RoleParams['role'], videoUuid: videoRoom.uuid });
+    const role = roleParam as RoleParams['role'];
 
-    res.send(servers);
+    const arnChannel = await getArnChannelNameFrom(videoRoom.uuid);
+    const endpointsByProtocol = await getSiganling({ role, arnChannel });
+    const servers = await getIceServers({ role, arnChannel, endpointsByProtocol });
+
+    res.send({ servers, signalingData: { role, arnChannel, endpointsByProtocol } });
   }),
 );

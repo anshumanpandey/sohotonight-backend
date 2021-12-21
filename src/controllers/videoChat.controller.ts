@@ -4,7 +4,8 @@ import * as VideoModel from '../models/videoChat.model';
 import UserModel, { discountUserToken, USER_ROLE_ENUM } from '../models/user.model';
 import { createMessage, CreateMessageParams, MESSAGES_EVENT_ENUM } from '../models/Message.model';
 import { createConversation, getConversationBy } from '../models/Conversation.model';
-import { sendNotificatioToUserId } from '../socketApp';
+import { SendNotificatioToUserId } from '../socketApp/SendNotificationToUser';
+import { createInvitation } from '../models/invitation.model';
 
 export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: string; startWithVoice?: boolean }> =
   async (req, res) => {
@@ -38,24 +39,26 @@ export const createVideoChat: express.RequestHandler<{}, {}, { toUserNickname: s
           body: `Missed call from ${u.nickname}`,
           createdByUser: u,
         };
-        createMessage(newMessageParams).then(() => {
-          sendNotificatioToUserId({
+        createMessage(newMessageParams).then((c) => {
+          SendNotificatioToUserId({
             userId: toUser.id,
             eventName: MESSAGES_EVENT_ENUM.NEW_MESSAGE,
-            body: toUser.toJSON(),
+            body: c.toJSON(),
           });
         });
       }
       throw new ApiError('User is not online', 409);
     }
-    const p = {
-      user: u,
+    const invitation = await createInvitation({
       toUser,
+      byUser: u,
+    });
+    const p = {
+      byUser: u,
       startWithVoice: req.body.startWithVoice !== undefined ? req.body.startWithVoice : false,
+      invitation,
     };
-    const invitation = await VideoModel.createVideoRoom(p);
-
-    res.send(invitation);
+    await VideoModel.createVideoRoom(p);
   };
 
 export const discountForVideoChat = async ({ callId, user }: { callId: string; user: any }) => {

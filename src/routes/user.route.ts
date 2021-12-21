@@ -27,7 +27,7 @@ import { JwtMiddleware } from '../middlewares/JwtMiddleware';
 import { RoleCheck } from '../middlewares/RoleCheck';
 import AssetBought from '../models/AssetBought.model';
 import { userSerializerFactory } from '../serializers/model.serializer';
-import { sendNotificatioToUserId } from '../socketApp';
+import { SendNotificatioToUserId } from '../socketApp/SendNotificationToUser';
 import { AUTH_EVENTS } from '../controllers/auth.controller';
 
 const upload = GenerateUploadMiddleware({ folderPath: 'pictures' });
@@ -95,7 +95,7 @@ userRoutes.post(
 
     let loggedStatePromise: Promise<any> = Promise.resolve();
     if (user.isLogged === true) {
-      sendNotificatioToUserId({ userId: user.id, eventName: AUTH_EVENTS.LOGOUT, body: {} });
+      SendNotificatioToUserId({ userId: user.id, eventName: AUTH_EVENTS.LOGOUT, body: {} });
       loggedStatePromise = waitTillUserLogout();
     } else {
       loggedStatePromise = user.update({ isLogged: true });

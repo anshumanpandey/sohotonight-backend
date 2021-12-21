@@ -5,6 +5,7 @@ module.exports = {
   development: {
     storage: path.join(__dirname, '..', 'sohonight.sqlite'),
     dialect: 'sqlite',
+    logging: true,
   },
   test: {
     username: process.env.CI_DB_USERNAME,

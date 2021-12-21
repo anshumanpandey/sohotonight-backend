@@ -4,15 +4,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiError } from '../utils/ApiError';
 import VideoChatInvitation, {
   INVITATION_RESPONSE_ENUM,
-  sendVideoInvitationTo,
+  createInvitation,
   invitationSerializer,
   getInvitationsBy,
   INVITATION_EVENTS,
 } from './invitation.model';
-import { sendNotificatioToUserId } from '../socketApp';
+import { SendNotificatioToUserId } from '../socketApp/SendNotificationToUser';
 import { Logger } from '../utils/Logger';
-import UserModel, { publicUserSerializer } from './user.model';
+import UserModel, { publicUserSerializer, USER_ROLE_ENUM } from './user.model';
 import { createSignalChannel, deleteSignalingChannel, getArnChannelNameFrom } from '../utils/AwsKinesisClient';
+import { createConversation, getConversationBy } from './Conversation.model';
+import { createMessage, CreateMessageParams, MESSAGES_EVENT_ENUM } from './Message.model';
+import InvitationModel from './invitation.model';
+import sequelize from '../utils/DB';
 
 export enum VIDEO_CHAT_EVENTS {
   VIDEO_CHAT_ENDED = 'VIDEO_CHAT_ENDED',
@@ -33,7 +37,8 @@ export default class VideoChatModel extends Model {
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
+    defaultValue: null,
   })
   uuid: string;
 
@@ -62,40 +67,42 @@ export default class VideoChatModel extends Model {
 
   @HasOne(() => VideoChatInvitation)
   invitation: VideoChatInvitation;
+
+  @Column({ defaultValue: false })
+  startWithVoice: boolean;
 }
 
 export const getVideoRoom = ({ id }: { id?: string }): Promise<VideoChatModel | null> => {
   return VideoChatModel.findByPk(id, { include: [{ model: UserModel }] });
 };
 
-export const createVideoRoom = async ({
-  user,
-  toUser,
-  startWithVoice,
-}: {
-  user: UserModel;
-  toUser: UserModel;
+type CreateVideoRoomParams = {
+  byUser: UserModel;
+  invitation: InvitationModel;
   startWithVoice: boolean;
-}) => {
-  const videoUuid = uuidv4();
-  const signalRoom = await createSignalChannel({ videoUuid });
+};
+export const createVideoRoom = async ({ byUser, startWithVoice, invitation }: CreateVideoRoomParams) => {
+  const createParams = {
+    createdById: byUser.id,
+    startDatetime: new Date(),
+    invitationId: invitation.id,
+    startWithVoice,
+  };
+  return sequelize.transaction(async (t) => {
+    const v = await VideoChatModel.create(createParams, { transaction: t });
 
-  if (!signalRoom) throw new ApiError('Could not generate video room data');
+    const videoUuid = uuidv4();
+    const signalRoom = await createSignalChannel({ videoUuid });
+    if (!signalRoom) throw new ApiError('Could not generate video room data');
 
-  // TODO: handle start date on connection
-  const v = await VideoChatModel.create({ createdById: user.id, uuid: videoUuid });
+    v.uuid = videoUuid;
+    v.save({ transaction: t });
 
-  const justCreated = await VideoChatModel.findByPk(v.id, { include: [{ model: UserModel }] });
-  if (!justCreated) throw new ApiError('Could not create the room');
+    const justCreated = await VideoChatModel.findByPk(v.id, { include: [{ model: UserModel }], transaction: t });
+    if (!justCreated) throw new ApiError('Could not create the room');
 
-  const invitation = await sendVideoInvitationTo({ callObj: v, toUser, startWithVoice });
-  v.invitationId = invitation.id;
-  await v.save();
-  const serialized = invitationSerializer(invitation);
-  serialized.videoChat.invitationId = invitation.id;
-  sendNotificatioToUserId({ userId: toUser.id, eventName: INVITATION_EVENTS.NEW_VIDEO_INVITATION, body: serialized });
-
-  return invitation;
+    return justCreated;
+  });
 };
 
 export const getOngoingVideoChats = async (p?: { relatedUser?: number | number[] }) => {
@@ -131,12 +138,12 @@ export const endVideoChat = async ({ videoChat }: { videoChat: VideoChatModel })
   const [i] = await getInvitationsBy({ id: videoChat.invitationId });
   const arnChannelName = await getArnChannelNameFrom(videoChat.uuid);
   await deleteSignalingChannel({ arnChannel: arnChannelName });
-  sendNotificatioToUserId({
+  SendNotificatioToUserId({
     userId: videoChat.createdById,
     eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED,
     body: videoChat,
   });
-  sendNotificatioToUserId({ userId: i.toUserId, eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED, body: videoChat });
+  SendNotificatioToUserId({ userId: i.toUserId, eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED, body: videoChat });
 };
 
 export const videoChatSerializer = (v: VideoChatModel): any => {
@@ -157,7 +164,7 @@ const resolveBroadcastEventFor =
 
     let sendTo = i.toUserId;
     if (i.toUserId == user.id) {
-      sendTo = i.createdById;
+      sendTo = i.createdByUserId;
     }
 
     let eventName = VIDEO_CHAT_EVENTS.STOPPED_VIDEO_BROADCAST;
@@ -181,10 +188,63 @@ const resolveBroadcastEventFor =
 
 export const setVideoBroadcast = async (p: SetVideBroadcastParams) => {
   const { sendTo, eventName, videoChat } = await resolveBroadcastEventFor('VIDEO')(p);
-  sendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat });
+  SendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat });
 };
 
 export const setVideoAudioBroadcast = async (p: SetVideBroadcastParams) => {
   const { sendTo, eventName, videoChat } = await resolveBroadcastEventFor('AUDIO')(p);
-  sendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat });
+  SendNotificatioToUserId({ userId: sendTo, eventName, body: videoChat });
+};
+
+export const userCanStartCall = (u: UserModel) => {
+  if (u.tokensBalance <= 0) throw new ApiError('User has no tokens to start a video chat');
+};
+
+export const userCanReceiveACall = async (fromUser: UserModel, toUser: UserModel) => {
+  if (fromUser.id === toUser.id) throw new ApiError('Cannot create call to itself');
+
+  const onGoingCalls = await getOngoingVideoChats({ relatedUser: [fromUser.id, toUser.id] });
+  if (onGoingCalls.length !== 0) {
+    throw new ApiError('User is currently on a call', 409);
+  }
+
+  if (toUser.isLogged === false) {
+    if (toUser.role === USER_ROLE_ENUM.MODEL) {
+      let [conversation] = await getConversationBy({ implicatedUserId: toUser.id });
+
+      if (!conversation) {
+        conversation = await createConversation({
+          createdByUserId: fromUser.id,
+          toUserId: toUser.id,
+        });
+      }
+      const newMessageParams: CreateMessageParams = {
+        conversation,
+        body: `Missed call from ${fromUser.nickname}`,
+        createdByUser: fromUser,
+      };
+      createMessage(newMessageParams).then((c) => {
+        SendNotificatioToUserId({
+          userId: toUser.id,
+          eventName: MESSAGES_EVENT_ENUM.NEW_MESSAGE,
+          body: c.toJSON(),
+        });
+      });
+    }
+    throw new ApiError('User is not online', 409);
+  }
+};
+
+type StartChatRoom = {
+  byUser: UserModel;
+  invitation: InvitationModel;
+  startWithVoice: boolean;
+};
+export const startChatRoom = async (params: StartChatRoom) => {
+  const p = {
+    byUser: params.byUser,
+    startWithVoice: params.startWithVoice,
+    invitation: params.invitation,
+  };
+  return createVideoRoom(p);
 };

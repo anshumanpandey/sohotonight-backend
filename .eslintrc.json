@@ -2,8 +2,7 @@
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "airbnb-base",
-        "airbnb-typescript/base",
+        "prettier/@typescript-eslint",
         "plugin:prettier/recommended"
     ],
     "parser": "@typescript-eslint/parser",

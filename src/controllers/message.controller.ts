@@ -1,7 +1,7 @@
 import express from 'express';
 import { getConversationBy } from '../models/Conversation.model';
 import MessageModel, { createMessage, MESSAGES_EVENT_ENUM } from '../models/Message.model';
-import { sendNotificatioToUserId } from '../socketApp';
+import { SendNotificatioToUserId } from '../socketApp/SendNotificationToUser';
 import { getUsersBy, USER_ROLE_ENUM } from '../models/user.model';
 import { renderHtmlTemaplate, Emailtemplates } from '../utils/renderHtmlTemaplate';
 import { sendEmail } from '../utils/Mail';
@@ -13,7 +13,7 @@ export const createMessageController = async (
   const [conversation] = await getConversationBy({ id: req.body.conversationId });
   //@ts-expect-error
   const c = await createMessage({ conversation, body: req.body.body, createdByUser: req.user });
-  sendNotificatioToUserId({
+  SendNotificatioToUserId({
     userId: req.user.id == conversation.toUserId ? conversation.createdByUserId : conversation.toUserId,
     eventName: MESSAGES_EVENT_ENUM.NEW_MESSAGE,
     body: c.toJSON(),

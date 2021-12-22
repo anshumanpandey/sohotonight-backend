@@ -250,6 +250,7 @@ userRoutes.post(
       password: hashedPass,
       nickname: nickname.toLowerCase().trim(),
       emailAddress: emailAddress.toLowerCase().trim(),
+      isLogged: true,
       ...fields,
       role: USER_ROLE_ENUM[fields.role.toUpperCase() as USER_ROLE_ENUM],
     };

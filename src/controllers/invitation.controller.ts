@@ -19,7 +19,8 @@ export const CreateInvitationController: express.RequestHandler<
   if (!toUser) throw new ApiError('User not logged');
 
   VideoModel.userCanStartCall(fromUser);
-  await VideoModel.userCanReceiveACall(fromUser, toUser);
+  //TODO:debug
+  //await VideoModel.userCanReceiveACall(fromUser, toUser);
 
   const invitation = await InvitationModel.createInvitation({
     toUser,

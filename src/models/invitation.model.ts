@@ -111,7 +111,9 @@ export const getInvitationsBy = async (by: WhereAttributeHash<InvitationByParams
   });
 
   invitations = invitations.map((i) => {
-    i.videoChat.invitation = i;
+    if (i.videoChat) {
+      i.videoChat.invitation = i;
+    }
     return i;
   });
 

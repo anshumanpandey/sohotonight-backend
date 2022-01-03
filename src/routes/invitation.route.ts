@@ -48,8 +48,12 @@ invitationRoute.post(
     });
     const d = await getVideoRoom({ id: invitation.videoChatId.toString() });
     if (d) {
-      const arnChannelName = await getArnChannelNameFrom(d.uuid);
-      await deleteSignalingChannel({ arnChannel: arnChannelName });
+      try {
+        const arnChannelName = await getArnChannelNameFrom(d.uuid);
+        await deleteSignalingChannel({ arnChannel: arnChannelName });
+      } catch (err) {
+        console.log(err);
+      }
     }
     res.send({ success: true });
   }),

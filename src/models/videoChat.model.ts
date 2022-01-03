@@ -129,8 +129,12 @@ export const endVideoChat = async ({ videoChat }: { videoChat: VideoChatModel })
   const endDatetime = new Date();
   await VideoChatModel.update({ endDatetime }, { where: { id: videoChat.id } });
   const [i] = await getInvitationsBy({ id: videoChat.invitationId });
-  const arnChannelName = await getArnChannelNameFrom(videoChat.uuid);
-  await deleteSignalingChannel({ arnChannel: arnChannelName });
+  try {
+    const arnChannelName = await getArnChannelNameFrom(videoChat.uuid);
+    await deleteSignalingChannel({ arnChannel: arnChannelName });
+  } catch (err) {
+    console.log(err);
+  }
   sendNotificatioToUserId({
     userId: videoChat.createdById,
     eventName: VIDEO_CHAT_EVENTS.VIDEO_CHAT_ENDED,

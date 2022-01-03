@@ -104,7 +104,7 @@ export const startSocketServer = (s: http.Server) => {
     client.on('RESUME_VIDEO_AUDIO_BROADCAST', errorWrapper(authWrapper(videoCtr.resumeVideoAudioBroadcast)));
 
     client.on('disconnect', () => {
-      console.log('disconnected');
+      Logger.info(`disconnected user [${client.decoded_token.id}]`);
       getOngoingVideoChats({ relatedUser: client.decoded_token.id }).then((chats) => {
         chats.map((c) => videoCtr.onChatEnd(c));
       });

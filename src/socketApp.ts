@@ -75,7 +75,6 @@ const errorTracker = (s: SockerConnection) => (cb: any) => {
 let io = null;
 export const startSocketServer = (s: http.Server) => {
   io = new socket.Server(s, {
-    transports: ['websocket'],
     cors: {
       origin: ['http://localhost:3000', 'https://www.sohotonight.com', 'https://sohotonight.com'],
       methods: ['GET', 'POST'],

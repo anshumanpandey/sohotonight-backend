@@ -10,6 +10,7 @@ import VideoModel from './models/video.model';
 import { Logger } from './utils/Logger';
 import MessageModel, { MESSAGES_EVENT_ENUM } from './models/Message.model';
 import { AUTH_EVENTS } from './controllers/auth.controller';
+import UserModel from './models/user.model';
 
 type SockerConnection = socket.Socket<DefaultEventsMap, DefaultEventsMap> & { decoded_token: { id: number } };
 type EmitEvents = {
@@ -37,6 +38,7 @@ const storeUserConnection = ({
 }) => {
   Logger.info(`storing connection for user ${userId}`);
   connDictionary.set(userId, socketConn);
+  UserModel.update({ isLogged: true }, { where: { id: userId } });
 };
 
 export const sendNotificatioToUserId = ({
@@ -105,6 +107,7 @@ export const startSocketServer = (s: http.Server) => {
 
     client.on('disconnect', () => {
       Logger.info(`disconnected user [${client.decoded_token.id}]`);
+      UserModel.update({ isLogged: false }, { where: { id: client.decoded_token.id } });
       getOngoingVideoChats({ relatedUser: client.decoded_token.id }).then((chats) => {
         chats.map((c) => videoCtr.onChatEnd(c));
       });

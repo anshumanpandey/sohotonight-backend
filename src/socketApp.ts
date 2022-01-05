@@ -38,7 +38,7 @@ const storeUserConnection = ({
 }) => {
   Logger.info(`storing connection for user ${userId}`);
   connDictionary.set(userId, socketConn);
-  UserModel.update({ isLogged: true }, { where: { id: userId } });
+  UserModel.update({ isLogged: true }, { where: { id: userId } }).then(() => Logger.debug('update logged status'));
 };
 
 export const sendNotificatioToUserId = ({
